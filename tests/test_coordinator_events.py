@@ -19,7 +19,7 @@ pytestmark = pytest.mark.asyncio
 HEAT_ALERT_ID = "7681487b-41c6-0308-1a00-3cade72982c1"
 AQA_ALERT_ID = "cbc5f830-921d-10c7-b447-e9bc1b744965"
 
-EXPECTED_FIELD_COUNT = 21
+EXPECTED_FIELD_COUNT = 24
 
 
 async def _setup_entry(hass, mock_aioclient):
@@ -73,8 +73,7 @@ class TestFirstPoll:
         assert len(updated) == 0
         assert len(cleared) == 0
         assert len(stale) == 0
-        assert created[0].data["ID"] == HEAT_ALERT_ID
-        assert created[1].data["ID"] == AQA_ALERT_ID
+        assert {e.data["ID"] for e in created} == {HEAT_ALERT_ID, AQA_ALERT_ID}
 
 
 class TestSecondPollNoChanges:
@@ -436,3 +435,6 @@ class TestEventData:
             assert "SenderName" in event.data
             assert "Effective" in event.data
             assert "FormattedHeadline" in event.data
+            assert "VTEC" in event.data
+            assert "VTECAction" in event.data
+            assert "References" in event.data

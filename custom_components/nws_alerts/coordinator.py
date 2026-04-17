@@ -187,6 +187,10 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
                     tmp_dict["SenderName"] = alert["properties"].get("senderName", "")
                     tmp_dict["Effective"] = alert["properties"].get("effective", "")
                     tmp_dict["FormattedHeadline"] = alert["properties"].get("headline", "")
+                    tmp_dict["VTEC"] = alert["properties"].get("parameters", {}).get("VTEC", [])
+                    vtec_list = tmp_dict["VTEC"]
+                    tmp_dict["VTECAction"] = vtec_list[0].split(".")[1] if vtec_list else None
+                    tmp_dict["References"] = alert["properties"].get("references", [])
 
                     alert_list.append(tmp_dict)
                 except (KeyError, TypeError) as error:

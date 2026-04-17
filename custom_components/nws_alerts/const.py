@@ -30,7 +30,7 @@ COORDINATOR = "coordinator"
 PLATFORMS = [Platform.SENSOR]
 CONFIG_VERSION = 2  # Config flow version
 
-FORK_VERSION = "events.1"
+FORK_VERSION = "events.2"
 
 EVENT_ALERT_CREATED = f"{DOMAIN}_alert_created"
 EVENT_ALERT_UPDATED = f"{DOMAIN}_alert_updated"

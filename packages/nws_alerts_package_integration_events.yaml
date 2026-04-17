@@ -14,7 +14,8 @@
 #
 #   Event data includes all alert fields: Event, ID, URL, Headline, Type, NWSCode,
 #   Status, Severity, Certainty, Urgency, Response, SenderName, Sent, Onset, Expires,
-#   Ends, Effective, AreasAffected, Description, Instruction, FormattedHeadline.
+#   Ends, Effective, AreasAffected, Description, Instruction, FormattedHeadline,
+#   VTEC, VTECAction, References.
 #
 #   IMPORTANT: This package requires the fork version of nws_alerts that fires these
 #   events. If you are using the upstream version, use the v6+ package instead.
