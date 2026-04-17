@@ -1,5 +1,6 @@
 """Event handling for NWS Alerts."""
 
+from datetime import UTC, datetime
 import logging
 
 from homeassistant.core import HomeAssistant
@@ -26,8 +27,6 @@ async def async_fire_alert_events(
     and nws_alerts_alert_cleared for removed alerts.
     Updates coordinator._previous_alerts and _last_successful_update afterward.
     """
-    from datetime import datetime
-
     new_alerts = new_data.get("alerts", [])
     new_alerts_by_id = {alert["ID"]: alert for alert in new_alerts}
     previous_alerts = coordinator._previous_alerts
@@ -39,9 +38,8 @@ async def async_fire_alert_events(
     for alert_id, alert in new_alerts_by_id.items():
         if alert_id not in previous_alerts:
             created_event_data.append(alert)
-        else:
-            if alert != previous_alerts[alert_id]:
-                updated_event_data.append(alert)
+        elif alert != previous_alerts[alert_id]:
+            updated_event_data.append(alert)
 
     for alert_id in previous_alerts:
         if alert_id not in new_alerts_by_id:
@@ -60,7 +58,7 @@ async def async_fire_alert_events(
         hass.bus.async_fire(EVENT_ALERT_CLEARED, alert)
 
     coordinator._previous_alerts = new_alerts_by_id
-    coordinator._last_successful_update = datetime.now().isoformat()
+    coordinator._last_successful_update = datetime.now(tz=UTC).isoformat()
 
 
 async def async_fire_stale_data_event(

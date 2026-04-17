@@ -8,5 +8,5 @@
     "iot_class": "cloud_polling",
     "issue_tracker": "https://github.com/nalabelle/nws_alerts/issues",
     "requirements": [],
-    "version": "6.7.3"
+    "version": "6.7.3.1"
   }

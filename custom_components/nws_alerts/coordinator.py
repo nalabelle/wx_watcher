@@ -1,7 +1,7 @@
 """Coordinator for nws_alerts."""
 
 from asyncio import timeout
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import hashlib
 import logging
 from typing import Any
@@ -68,7 +68,7 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
             except AttributeError as error:
                 _LOGGER.warning("AttributeError fetching NWS Alerts data: %s. Will retry.", error)
                 # Return valid structure instead of None
-                return {"state": 0, "alerts": [], "last_updated": datetime.now().isoformat()}
+                return {"state": 0, "alerts": [], "last_updated": datetime.now(tz=UTC).isoformat()}
             except Exception as error:
                 await async_fire_stale_data_event(self.hass, self._last_successful_update)
                 raise UpdateFailed(error) from error
@@ -100,7 +100,7 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
 
         zone_id = ""
         gps_loc = ""
-        values = {"state": 0, "alerts": [], "last_updated": datetime.now().isoformat()}
+        values = {"state": 0, "alerts": [], "last_updated": datetime.now(tz=UTC).isoformat()}
 
         if CONF_ZONE_ID in self._config.data:
             zone_id = self._config.data[CONF_ZONE_ID]
@@ -128,7 +128,7 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
         alerts: dict[str, Any] = {
             "state": 0,
             "alerts": [],
-            "last_updated": datetime.now().isoformat(),
+            "last_updated": datetime.now(tz=UTC).isoformat(),
         }
         headers = {"User-Agent": self._user_agent, "Accept": "application/geo+json"}
         data = None
@@ -199,7 +199,7 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
 
             alerts["state"] = len(alert_list)
             alerts["alerts"] = sorted(alert_list, key=lambda x: x["ID"])
-            alerts["last_updated"] = datetime.now().isoformat()
+            alerts["last_updated"] = datetime.now(tz=UTC).isoformat()
 
         return alerts
 

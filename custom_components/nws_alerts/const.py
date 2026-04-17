@@ -21,7 +21,7 @@ DEFAULT_TIMEOUT = 120
 
 # Misc
 ZONE_ID = ""
-VERSION = "6.7.3"
+VERSION = "6.7.3.1"
 ISSUE_URL = "https://github.com/finity69x2/nws_alert"
 DOMAIN = "nws_alerts"
 PLATFORM = "sensor"
@@ -29,8 +29,6 @@ ATTRIBUTION = "Data provided by Weather.gov"
 COORDINATOR = "coordinator"
 PLATFORMS = [Platform.SENSOR]
 CONFIG_VERSION = 2  # Config flow version
-
-FORK_VERSION = "events.2"
 
 EVENT_ALERT_CREATED = f"{DOMAIN}_alert_created"
 EVENT_ALERT_UPDATED = f"{DOMAIN}_alert_updated"
