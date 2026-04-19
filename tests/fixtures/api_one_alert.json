@@ -19,9 +19,7 @@
         "id": "urn:oid:2.49.0.1.840.0.505a7220d91b00eb1d75a3fb4f339f825496a522.004.1",
         "areaDesc": "Northwest Valley; Buckeye/Avondale; Deer Valley; Central Phoenix; North Phoenix/Glendale; Scottsdale/Paradise Valley; East Valley; South Mountain/Ahwatukee; Southeast Valley/Queen Creek",
         "geocode": {
-          "SAME": [
-            "004013"
-          ],
+          "SAME": ["004013"],
           "UGC": [
             "AZZ537",
             "AZZ540",
@@ -66,9 +64,7 @@
         "urgency": "Expected",
         "event": "Excessive Heat Warning",
         "eventCode": {
-          "NationalWeatherService": [
-            "EHW"
-          ]
+          "NationalWeatherService": ["EHW"]
         },
         "sender": "w-nws.webmaster@noaa.gov",
         "senderName": "NWS Phoenix AZ",
@@ -77,26 +73,14 @@
         "instruction": "An Excessive Heat Warning means that a period of very hot\ntemperatures, even by local standards, will occur. Actions should be\ntaken to lessen the impact of the extreme heat.\n\nTake extra precautions if you work or spend time outside. When\npossible, reschedule strenuous activities to early morning or\nevening. Know the signs and symptoms of heat exhaustion and heat\nstroke. Wear lightweight and loose-fitting clothing when possible\nand drink plenty of water.\n\nTo reduce risk during outdoor work, the Occupational Safety and\nHealth Administration recommends scheduling frequent rest breaks in\nshaded or air conditioned environments. Anyone overcome by heat\nshould be moved to a cool and shaded location. Heat stroke is an\nemergency! Call 9 1 1.\n\nPublic cooling shelters are available in some areas. Consult county\nofficials for more details.",
         "response": "Execute",
         "parameters": {
-          "AWIPSidentifier": [
-            "NPWPSR"
-          ],
-          "WMOidentifier": [
-            "WWUS75 KPSR 181947"
-          ],
+          "AWIPSidentifier": ["NPWPSR"],
+          "WMOidentifier": ["WWUS75 KPSR 181947"],
           "NWSheadline": [
             "EXCESSIVE HEAT WARNING REMAINS IN EFFECT FROM 10 AM FRIDAY TO 8 PM MST SATURDAY"
           ],
-          "BLOCKCHANNEL": [
-            "EAS",
-            "NWEM",
-            "CMAS"
-          ],
-          "VTEC": [
-            "/O.CON.KPSR.EH.W.0006.240719T1700Z-240721T0300Z/"
-          ],
-          "eventEndingTime": [
-            "2024-07-21T03:00:00+00:00"
-          ]
+          "BLOCKCHANNEL": ["EAS", "NWEM", "CMAS"],
+          "VTEC": ["/O.CON.KPSR.EH.W.0006.240719T1700Z-240721T0300Z/"],
+          "eventEndingTime": ["2024-07-21T03:00:00+00:00"]
         }
       }
     }

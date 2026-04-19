@@ -19,7 +19,7 @@ pytestmark = pytest.mark.asyncio
 HEAT_ALERT_ID = "7681487b-41c6-0308-1a00-3cade72982c1"
 AQA_ALERT_ID = "cbc5f830-921d-10c7-b447-e9bc1b744965"
 
-EXPECTED_FIELD_COUNT = 24
+EXPECTED_FIELD_COUNT = 26
 
 
 async def _setup_entry(hass, mock_aioclient):
@@ -39,6 +39,8 @@ async def _setup_entry(hass, mock_aioclient):
 
 
 class TestFirstPoll:
+    """Tests for the first poll fetching alerts."""
+
     async def test_first_poll_fires_created_events(self, hass, mock_aioclient):
         """First poll should fire created events for all alerts."""
         # Register 2 copies for setup, plus we don't need more
@@ -77,6 +79,8 @@ class TestFirstPoll:
 
 
 class TestSecondPollNoChanges:
+    """Tests for second poll with no changes."""
+
     async def test_second_poll_no_events(self, hass, mock_aioclient):
         """Second poll with identical data should fire no events."""
         # 2 for setup + 1 for explicit refresh
@@ -118,6 +122,8 @@ class TestSecondPollNoChanges:
 
 
 class TestAlertUpdated:
+    """Tests for alert updates."""
+
     async def test_alert_updated_fires_event(self, hass, mock_aioclient):
         """Changed alert data should fire updated event."""
         api_data = json.loads(load_fixture("api.json"))
@@ -167,6 +173,8 @@ class TestAlertUpdated:
 
 
 class TestAlertCleared:
+    """Tests for alert clearance."""
+
     async def test_alert_cleared_fires_event(self, hass, mock_aioclient):
         """Removed alert should fire cleared event."""
         # 2 for setup (2 alerts) + 1 for explicit refresh (1 alert)
@@ -190,7 +198,7 @@ class TestAlertCleared:
         )
         entry.add_to_hass(hass)
 
-        result = await hass.config_entries.async_setup(entry.entry_id)
+        await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
         events.clear()
@@ -211,6 +219,8 @@ class TestAlertCleared:
 
 
 class TestCreatedAfterCleared:
+    """Tests for alert re-created after being cleared."""
+
     async def test_alert_created_after_clear(self, hass, mock_aioclient):
         """Alert that disappears then reappears should fire created event."""
         # 2 for setup (2 alerts) + 1 for refresh (1 alert) + 1 for refresh (2 alerts)
@@ -235,7 +245,7 @@ class TestCreatedAfterCleared:
         )
         entry.add_to_hass(hass)
 
-        result = await hass.config_entries.async_setup(entry.entry_id)
+        await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
         events.clear()
@@ -261,6 +271,8 @@ class TestCreatedAfterCleared:
 
 
 class TestApiFailure:
+    """Tests for API failure handling."""
+
     async def test_api_failure_fires_stale_data(self, hass, mock_aioclient):
         """API failure should fire stale_data event, not alert events."""
         # 2 for setup (success) + 1 for explicit refresh (503)
@@ -285,7 +297,7 @@ class TestApiFailure:
         )
         entry.add_to_hass(hass)
 
-        result = await hass.config_entries.async_setup(entry.entry_id)
+        await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
         assert len([e for e in events if e.event_type == EVENT_ALERT_CREATED]) == 2
@@ -301,8 +313,7 @@ class TestApiFailure:
         alert_events = [
             e
             for e in events
-            if e.event_type
-            in (EVENT_ALERT_CREATED, EVENT_ALERT_UPDATED, EVENT_ALERT_CLEARED)
+            if e.event_type in (EVENT_ALERT_CREATED, EVENT_ALERT_UPDATED, EVENT_ALERT_CLEARED)
         ]
 
         assert len(stale_events) == 1
@@ -310,7 +321,7 @@ class TestApiFailure:
         assert stale_events[0].data["last_successful"] is not None
 
     async def test_api_failure_preserves_previous_alerts(self, hass, mock_aioclient):
-        """API failure should not clear _previous_alerts."""
+        """API failure should not clear previous_alerts."""
         # 2 for setup (success) + 1 for explicit refresh (503)
         mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api.json"))
         mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api.json"))
@@ -326,13 +337,13 @@ class TestApiFailure:
         await hass.async_block_till_done()
 
         coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
-        assert len(coordinator._previous_alerts) == 2
+        assert len(coordinator.previous_alerts) == 2
 
         await coordinator.async_refresh()
         await hass.async_block_till_done()
 
-        # _previous_alerts should still have both alerts after failure
-        assert len(coordinator._previous_alerts) == 2
+        # previous_alerts should still have both alerts after failure
+        assert len(coordinator.previous_alerts) == 2
 
     async def test_api_failure_then_recovery(self, hass, mock_aioclient):
         """After API failure, recovery should fire correct events."""
@@ -390,6 +401,8 @@ class TestApiFailure:
 
 
 class TestEventData:
+    """Tests for event data contents."""
+
     async def test_event_data_contains_all_fields(self, hass, mock_aioclient):
         """Event data should contain all 21 alert fields."""
         mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api.json"))
@@ -438,3 +451,5 @@ class TestEventData:
             assert "VTEC" in event.data
             assert "VTECAction" in event.data
             assert "References" in event.data
+            assert "config_entry_id" in event.data
+            assert "config_name" in event.data

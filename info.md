@@ -1,4 +1,4 @@
-# Alerts from the US National Weather Service  (nws_alerts)
+# Alerts from the US National Weather Service (nws_alerts)
 
 ## Breaking Change for V5.0
 
@@ -18,8 +18,8 @@ The sensor that is created is used in my "NWS Alerts Custom" package - https://g
 
 Clone the Repository and copy the "nws_alerts" directory to your "custom_components" directory in your config directory
 
-```<config directory>/custom_components/nws_alerts/...```
-  
+`<config directory>/custom_components/nws_alerts/...`
+
 ## Configuration:
 
 You can find your Zone or County ID by going to https://alerts.weather.gov/, scroll down to your state and click on the “zone list” and/or "county list" then look for the entry for your county.

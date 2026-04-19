@@ -19,9 +19,13 @@ DEFAULT_NAME = "NWS Alerts"
 DEFAULT_INTERVAL = 1
 DEFAULT_TIMEOUT = 120
 
+# Event attributes
+EVENT_ATTR_CONFIG_ENTRY_ID = "config_entry_id"
+EVENT_ATTR_CONFIG_NAME = "config_name"
+
 # Misc
 ZONE_ID = ""
-VERSION = "6.7.3.1"
+VERSION = "6.8.0"
 ISSUE_URL = "https://github.com/finity69x2/nws_alert"
 DOMAIN = "nws_alerts"
 PLATFORM = "sensor"

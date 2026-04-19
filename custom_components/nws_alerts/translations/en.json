@@ -21,16 +21,16 @@
           "name": "Friendly Name",
           "tracker": "Device to track",
           "interval": "Update Interval (in minutes)",
-          "timeout":"Update Timeout (in seconds)"
+          "timeout": "Update Timeout (in seconds)"
         }
-      },      
+      },
       "gps_loc": {
         "description": "Please enter your latitude and longitude, by default your coordinates from Home Assistant are used.",
         "data": {
           "name": "Friendly Name",
           "gps_loc": "Your GPS coordinates",
           "interval": "Update Interval (in minutes)",
-          "timeout":"Update Timeout (in seconds)"
+          "timeout": "Update Timeout (in seconds)"
         }
       },
       "zone": {
@@ -59,25 +59,25 @@
           "gps_loc": "Using your Home Assistant location",
           "gps_tracker": "Using a device tracker"
         }
-      },      
+      },
       "gps_tracker": {
         "description": "Select the device you'd like to track for alerts.",
         "data": {
           "name": "Friendly Name",
           "tracker": "Device to track",
           "interval": "Update Interval (in minutes)",
-          "timeout":"Update Timeout (in seconds)"
+          "timeout": "Update Timeout (in seconds)"
         }
-      },        
+      },
       "gps_loc": {
         "description": "Please enter your latitude and longitude, by default your coordinates from Home Assistant are used.",
         "data": {
           "name": "Friendly Name",
           "gps_loc": "Your GPS coordinates",
           "interval": "Update Interval (in minutes)",
-          "timeout":"Update Timeout (in seconds)"
+          "timeout": "Update Timeout (in seconds)"
         }
-      },      
+      },
       "zone": {
         "data": {
           "name": "Friendly Name",

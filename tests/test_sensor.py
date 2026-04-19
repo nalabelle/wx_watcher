@@ -57,7 +57,14 @@ async def test_sensor(hass, mock_api):
             "FormattedHeadline": "Excessive Heat Warning issued July 18 at 12:47PM MST until July 20 at 8:00PM MST by NWS Phoenix AZ",
             "VTEC": ["/O.CON.KPSR.EH.W.0006.240719T1700Z-240721T0300Z/"],
             "VTECAction": "CON",
-            "References": [{"@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.2852349b8f25500975c692db29cb2f047ff20a7c.004.2", "identifier": "urn:oid:2.49.0.1.840.0.2852349b8f25500975c692db29cb2f047ff20a7c.004.2", "sender": "w-nws.webmaster@noaa.gov", "sent": "2024-07-18T01:14:00-07:00"}],
+            "References": [
+                {
+                    "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.2852349b8f25500975c692db29cb2f047ff20a7c.004.2",
+                    "identifier": "urn:oid:2.49.0.1.840.0.2852349b8f25500975c692db29cb2f047ff20a7c.004.2",
+                    "sender": "w-nws.webmaster@noaa.gov",
+                    "sent": "2024-07-18T01:14:00-07:00",
+                }
+            ],
         },
         {
             "AreasAffected": "Maricopa, AZ",

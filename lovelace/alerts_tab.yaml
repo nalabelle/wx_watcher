@@ -16,8 +16,8 @@ cards:
             {% for alert_num in range(num_alerts) %}
             ---
             # NWS Alert {{ alert_num + 1 }}
-            
+
             ## {{ state_attr('sensor.nws_alerts_alerts', 'Alerts')[alert_num].Event }}
-            
+
               {{ state_attr('sensor.nws_alerts_alerts', 'Alerts')[alert_num].Description }}
             {% endfor %}

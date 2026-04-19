@@ -14,7 +14,7 @@ The sensor that is created can be used in my ["NWS Alerts" package](https://gith
 
 You can also display the generated alerts in your frontend. For example usage see [here](https://github.com/finity69x2/nws_alerts/blob/a31ed70c568f942bb09306ee3580d25ba9811d5a/lovelace/alerts_tab.yaml)
 
-Additionally, there is a very nice dashboard card created by another user (@seevee) for use in displaying the sensor data in your frontend. The card is located [here](https://github.com/seevee/weather_alerts_card) and can be installed into Home Assistant via HACS (search for "weather alerts card"). 
+Additionally, there is a very nice dashboard card created by another user (@seevee) for use in displaying the sensor data in your frontend. The card is located [here](https://github.com/seevee/weather_alerts_card) and can be installed into Home Assistant via HACS (search for "weather alerts card").
 
 And just to clarify, I'm not the creator or maintainer of that card so any issues or feature requests should be directed to their Github page and not here.
 
@@ -34,55 +34,43 @@ And just to clarify, I'm not the creator or maintainer of that card so any issue
 
 - Clone the Repository and copy the "nws_alerts" directory from the downloaded directory into your "custom_components" directory in your config directory.
 
-- ```<config directory>/custom_components/nws_alerts/...```
-
+- `<config directory>/custom_components/nws_alerts/...`
 
 After installing the integration into Home Assistant either manually or via HACS you can then configure it using the instructions in the following section.
-  
+
 ## Configuration:
 
 Go to "Settings" > "Devices & Services" and in the "Integrations" tab click on "+Add Integration" in the bottom right corner
 
 Search for "NWS Alerts" in the list of integrations and follow the UI prompts to configure the integration.
 
-*** There are a few configuration method options to select from. Please see the following link to help you decide which option to use: https://github.com/finity69x2/nws_alerts/blob/master/lookup_options.md
-
+\*\*\* There are a few configuration method options to select from. Please see the following link to help you decide which option to use: https://github.com/finity69x2/nws_alerts/blob/master/lookup_options.md
 
 ### If using use either a Zone or County Code:
 
 1. Zone:
+   - Open [NWS GIS Viewer](https://viewer.weather.noaa.gov). This is an interactive GIS map.
+   - When the map loads find the 'Layers' button toward the top right of the browser window. I recommend using the 'Clear Layers' button first.
 
-    * Open [NWS GIS Viewer](https://viewer.weather.noaa.gov). This is an interactive GIS map. 
-   
-    * When the map loads find the 'Layers' button toward the top right of the browser window. I recommend using the 'Clear Layers' button first.
+   - Enable 'Reference Layers' -> 'Surface Weather Forecast Zones' -> 'Public Weather Forecast Zones'
+   - Find your zone ID on the map.
+   - To use the zone id code you will need to modify it as follows:
+     - The state abbreviation from the zone id followed by 'Z' then the three digit numerical portion of the zone id.
+     - For example if the zone id is IN009 the code you will use is INZ009
 
-    * Enable 'Reference Layers' -> 'Surface Weather Forecast Zones' -> 'Public Weather Forecast Zones'
-	
-	* Find your zone ID on the map.
-	
-	* To use the zone id code you will need to modify it as follows:
-	  
-	  - The state abbreviation from the zone id followed by 'Z' then the three digit numerical portion of the zone id.
-	  - For example if the zone id is IN009 the code you will use is INZ009
-	  
 2. County:
-
-   * Go to https://www.weather.gov/pimar/FIPSCodes
-   
-   * Find your state then click on the 'jpg' link in the far right column
-   
-   * Look in the map to find your county.
-   
-   * To use the county id code you will need to modify it as follows:
-	  
-	  - Use the two letter USPS state abbreviation followed by 'C' then the last three digits of the county id.
-	  - For example if the county id is 18033 the code you will use is INC033 (18 is the state code for indiana)
+   - Go to https://www.weather.gov/pimar/FIPSCodes
+   - Find your state then click on the 'jpg' link in the far right column
+   - Look in the map to find your county.
+   - To use the county id code you will need to modify it as follows:
+     - Use the two letter USPS state abbreviation followed by 'C' then the last three digits of the county id.
+     - For example if the county id is 18033 the code you will use is INC033 (18 is the state code for indiana)
 
 ### If using either GPS coordinates or a device tracker:
 
-   * If you choose to use the GPS option then the location used by your Home Assistant installation will be entered by default. You can change those GPS coordinates to any that you desire.
+- If you choose to use the GPS option then the location used by your Home Assistant installation will be entered by default. You can change those GPS coordinates to any that you desire.
 
-   * If you select the "Using a device tracker" option under the "GPS Location" option then HA will use the GPS coordinates provided by that tracker to query for alerts so you should follow the same recommendations for using GPS coordinates when using that option.
+- If you select the "Using a device tracker" option under the "GPS Location" option then HA will use the GPS coordinates provided by that tracker to query for alerts so you should follow the same recommendations for using GPS coordinates when using that option.
 
 After you restart Home Assistant then you should have a new sensor (by default) called "sensor.nws_alerts_alerts" in your system.
 

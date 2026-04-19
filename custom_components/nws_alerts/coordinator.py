@@ -46,6 +46,8 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
         self.hass = hass
         self._previous_alerts: dict[str, dict] = {}
         self._last_successful_update: str | None = None
+        self._entry_id = config.entry_id
+        self._entry_name = config.data.get(CONF_NAME, "")
 
         _LOGGER.debug("Data will be update every %s", self.interval)
 
@@ -56,6 +58,21 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
             name=self.name,
             update_interval=self.interval,
         )
+
+    @property
+    def entry_id(self) -> str:
+        """Return the config entry ID for this coordinator."""
+        return self._entry_id
+
+    @property
+    def entry_name(self) -> str:
+        """Return the friendly name for this coordinator."""
+        return self._entry_name
+
+    @property
+    def previous_alerts(self) -> dict[str, dict]:
+        """Return the previous alerts dict for comparison during updates."""
+        return self._previous_alerts
 
     async def _async_update_data(self):
         """Fetch data."""

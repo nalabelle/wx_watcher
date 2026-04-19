@@ -1,12 +1,12 @@
 {
-    "domain": "nws_alerts",
-    "name": "NWS Alerts",
-    "codeowners": ["@finity69x2"],
-    "config_flow": true,
-    "dependencies": [],
-    "documentation": "https://github.com/finity69x2/nws_alerts/",
-    "iot_class": "cloud_polling",
-    "issue_tracker": "https://github.com/nalabelle/nws_alerts/issues",
-    "requirements": [],
-    "version": "6.7.3.1"
-  }
+  "domain": "nws_alerts",
+  "name": "NWS Alerts",
+  "codeowners": ["@finity69x2"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/finity69x2/nws_alerts/",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/nalabelle/nws_alerts/issues",
+  "requirements": [],
+  "version": "6.8.0"
+}

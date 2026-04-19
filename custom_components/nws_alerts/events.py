@@ -10,6 +10,8 @@ from .const import (
     EVENT_ALERT_CREATED,
     EVENT_ALERT_STALE_DATA,
     EVENT_ALERT_UPDATED,
+    EVENT_ATTR_CONFIG_ENTRY_ID,
+    EVENT_ATTR_CONFIG_NAME,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,7 +31,7 @@ async def async_fire_alert_events(
     """
     new_alerts = new_data.get("alerts", [])
     new_alerts_by_id = {alert["ID"]: alert for alert in new_alerts}
-    previous_alerts = coordinator._previous_alerts
+    previous_alerts = coordinator.previous_alerts
 
     created_event_data = []
     updated_event_data = []
@@ -41,24 +43,41 @@ async def async_fire_alert_events(
         elif alert != previous_alerts[alert_id]:
             updated_event_data.append(alert)
 
-    for alert_id in previous_alerts:
-        if alert_id not in new_alerts_by_id:
-            cleared_event_data.append(previous_alerts[alert_id])
+    cleared_event_data = [
+        previous_alerts[alert_id]
+        for alert_id in previous_alerts
+        if alert_id not in new_alerts_by_id
+    ]
 
     for alert in created_event_data:
+        enriched = {
+            **alert,
+            EVENT_ATTR_CONFIG_ENTRY_ID: coordinator.entry_id,
+            EVENT_ATTR_CONFIG_NAME: coordinator.entry_name,
+        }
         _LOGGER.debug("Firing %s for %s", EVENT_ALERT_CREATED, alert["ID"])
-        hass.bus.async_fire(EVENT_ALERT_CREATED, alert)
+        hass.bus.async_fire(EVENT_ALERT_CREATED, enriched)
 
     for alert in updated_event_data:
+        enriched = {
+            **alert,
+            EVENT_ATTR_CONFIG_ENTRY_ID: coordinator.entry_id,
+            EVENT_ATTR_CONFIG_NAME: coordinator.entry_name,
+        }
         _LOGGER.debug("Firing %s for %s", EVENT_ALERT_UPDATED, alert["ID"])
-        hass.bus.async_fire(EVENT_ALERT_UPDATED, alert)
+        hass.bus.async_fire(EVENT_ALERT_UPDATED, enriched)
 
     for alert in cleared_event_data:
+        enriched = {
+            **alert,
+            EVENT_ATTR_CONFIG_ENTRY_ID: coordinator.entry_id,
+            EVENT_ATTR_CONFIG_NAME: coordinator.entry_name,
+        }
         _LOGGER.debug("Firing %s for %s", EVENT_ALERT_CLEARED, alert["ID"])
-        hass.bus.async_fire(EVENT_ALERT_CLEARED, alert)
+        hass.bus.async_fire(EVENT_ALERT_CLEARED, enriched)
 
-    coordinator._previous_alerts = new_alerts_by_id
-    coordinator._last_successful_update = datetime.now(tz=UTC).isoformat()
+    coordinator._previous_alerts = new_alerts_by_id  # noqa: SLF001
+    coordinator._last_successful_update = datetime.now(tz=UTC).isoformat()  # noqa: SLF001
 
 
 async def async_fire_stale_data_event(
