@@ -1,0 +1,38 @@
+<svg
+  width="64"
+  height="64"
+  viewBox="0 0 64 64"
+  xmlns="http://www.w3.org/2000/svg"
+  role="img"
+  aria-label="wx_watcher radar logo"
+>
+  <!-- Transparent background, square icon -->
+  <g fill="none" stroke-linecap="round">
+    <!-- Outer radar circle, inset for padding in a square -->
+    <circle
+      cx="32"
+      cy="32"
+      r="20"
+      stroke="#2dd4bf"
+      stroke-width="3"
+    />
+
+    <!-- Radar sweep line -->
+    <line
+      x1="32"
+      y1="32"
+      x2="48"
+      y2="16"
+      stroke="#2dd4bf"
+      stroke-width="3"
+    />
+
+    <!-- Tracked storm dot -->
+    <circle
+      cx="44"
+      cy="20"
+      r="3"
+      fill="#22c55e"
+    />
+  </g>
+</svg>

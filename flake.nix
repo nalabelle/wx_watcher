@@ -154,6 +154,7 @@
                 enable = true;
                 entry = "${forbidBinaryScript}/bin/forbid-binary";
                 types = [ "binary" ];
+                excludes = [ "brand/icon\\.png$" ];
                 language = "system";
               };
               script-must-have-extension = {

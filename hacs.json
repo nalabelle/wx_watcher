@@ -2,7 +2,5 @@
   "name": "WX Watcher",
   "content_in_root": false,
   "country": ["US"],
-  "domains": ["wx_watcher"],
-  "homeassistant": "2026.2.0",
-  "iot_class": "cloud_polling"
+  "homeassistant": "2026.2.0"
 }
