@@ -46,7 +46,7 @@ EVENT_ATTR_CONFIG_ENTRY_ID = "config_entry_id"
 EVENT_ATTR_SOURCES = "sources"
 
 # Misc
-VERSION = "7.0.0"
+VERSION = "7.0.1"
 ISSUE_URL = "https://github.com/nalabelle/wx_watcher"
 DOMAIN = "wx_watcher"
 PLATFORM = "sensor"
