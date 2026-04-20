@@ -50,7 +50,7 @@ def test_parse_alert():
             "response": "Execute",
             "parameters": {
                 "NWSheadline": ["TEST WARNING"],
-                "VTEC": ["/O.NEW.KTEST.TW.Y.0001.240719T1700Z-240721T0300Z/"],
+                "VTEC": ["/O.NEW.KTST.TW.Y.0001.240719T1700Z-240721T0300Z/"],
             },
         },
     }
