@@ -9,22 +9,20 @@ import pytest
 pytest_plugins = "pytest_homeassistant_custom_component"
 
 API_URL = "https://api.weather.gov"
+ZONE_URL = "https://api.weather.gov/alerts/active?zone=AZC013,AZZ540"
+ZONE_URL_SINGLE = "https://api.weather.gov/alerts/active?zone=AZZ540"
+POINT_URL = "https://api.weather.gov/alerts/active?point=33.25,-112.3"
+POINT_URL_WORK = "https://api.weather.gov/alerts/active?point=33.45,-112.06"
+POINTS_URL = "https://api.weather.gov/points/33.25,-112.30"
 COUNT_URL = "https://api.weather.gov/alerts/active/count"
-ZONE_URL = "https://api.weather.gov/alerts/active?zone=AZZ540,AZC013"
-POINT_URL = "https://api.weather.gov/alerts/active?point=123,-456"
 
 
-# This fixture enables loading custom integrations in all tests.
-# Remove to enable selective use of this fixture
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations):
     """Enable custom integration tests."""
     return
 
 
-# This fixture is used to prevent HomeAssistant from attempting to create and dismiss persistent
-# notifications. These calls would fail without this fixture since the persistent_notification
-# integration is never loaded during a test.
 @pytest.fixture(name="skip_notifications", autouse=True)
 def skip_notifications_fixture():
     """Skip notification calls."""
@@ -46,7 +44,6 @@ def aioclient_mock():
             headers=mock_headers,
             body={},
         )
-
         yield mock_aiohttp
 
 
@@ -75,7 +72,7 @@ def load_fixture(filename: str, integration: str | None = None) -> str:
 
 @pytest.fixture(name="mock_api")
 def mock_api(mock_aioclient):
-    """Load the charger data."""
+    """Load the zone alert data."""
     mock_aioclient.get(
         ZONE_URL,
         status=200,

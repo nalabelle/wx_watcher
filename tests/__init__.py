@@ -1,1 +1,1 @@
-"""nws_alerts tests."""
+"""WX Watcher tests."""

@@ -1,5 +1,5 @@
 {
-  description = "NWS Alerts custom component development environment";
+  description = "WX Watcher custom component development environment";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -155,7 +155,6 @@
                 entry = "${forbidBinaryScript}/bin/forbid-binary";
                 types = [ "binary" ];
                 language = "system";
-                excludes = [ "www/nws_alert_tone\\.mp3" ];
               };
               script-must-have-extension = {
                 enable = true;
@@ -176,9 +175,17 @@
               };
 
               # --- Custom hooks (project) ---
+              mypy = {
+                enable = true;
+                entry = "uv run mypy custom_components/wx_watcher tests";
+                files = "\\.py$";
+                language = "system";
+                types = [ "python" ];
+                pass_filenames = false;
+              };
               pytest = {
                 enable = true;
-                entry = ".venv/bin/pytest tests/ -v";
+                entry = "uv run pytest tests/ -v";
                 files = "\\.py$";
                 language = "system";
                 types = [ "python" ];
@@ -192,15 +199,8 @@
 
             packages = with pkgs; [
               python313
-              python313Packages.pip
-              python313Packages.venvShellHook
+              uv
             ];
-
-            venvDir = ".venv";
-
-            postShellHook = ''
-              pip install -r requirements_test.txt
-            '';
           };
         };
     };

@@ -1,0 +1,36 @@
+WX Watcher
+Copyright © 2024-2026 nalabelle
+
+This integration is derived from nws_alerts by finity69x2
+(https://github.com/finity69x2/nws_alerts), which is in turn derived from
+nws_custom_component by eracknaphobia
+(https://github.com/eracknaphobia/nws_custom_component).
+
+Neither upstream project includes a license. Attribution is provided here
+in good faith. The v7+ codebase (multi-location, deduplication, event-driven
+architecture, combined zone queries, fan-out) is original work by @nalabelle.
+
+Files containing code derived from upstream are noted with attribution
+comments at the top of each file. As upstream-derived code is rewritten or
+removed, those attribution comments should be updated or removed accordingly.
+
+Derived code by file:
+  - __init__.py: setup/unload pattern, startup logging, user agent construction,
+    coordinator storage pattern (from finity69x2/nws_alerts)
+  - const.py: API endpoint, constant naming conventions, default values,
+    event naming pattern (from finity69x2/nws_alerts, originally from
+    eracknaphobia/nws_custom_component)
+  - api.py: generate_id() MD5->UUID algorithm, HTTP fetch pattern,
+    alert field extraction from NWS API responses (from finity69x2/nws_alerts)
+  - coordinator.py: DataUpdateCoordinator structure, _async_update_data pattern
+    with async_timeout + UpdateFailed, _get_tracker_gps (from finity69x2/nws_alerts)
+  - config_flow.py: ConfigFlow/OptionsFlow class pattern, tracker entity listing
+    (from finity69x2/nws_alerts)
+  - sensor.py: SENSOR_TYPES dict, CoordinatorEntity class structure, state/
+    extra_state_attributes/device_info properties, async_setup_entry pattern
+    (from finity69x2/nws_alerts)
+  - manifest.json: structure and field names (from finity69x2/nws_alerts)
+
+The original nws_custom_component by eracknaphobia contributed the concept and
+initial API endpoint/constant definitions (API_ENDPOINT, USER_AGENT, DEFAULT_ICON,
+DEFAULT_NAME, CONF_ZONE_ID, ZONE_ID).

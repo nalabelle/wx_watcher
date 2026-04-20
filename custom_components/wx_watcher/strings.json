@@ -1,0 +1,83 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "WX Watcher",
+        "description": "Set up WX Watcher. You can monitor one or more locations (home, work, phone, etc.), each with its own mode.",
+        "data": {
+          "name": "Name",
+          "interval": "Update interval (minutes)",
+          "timeout": "Update timeout (seconds)"
+        }
+      },
+      "locations": {
+        "title": "Locations",
+        "description": "Current locations: {location_list}\n\nAdd a location or finish setup.",
+        "data": {
+          "action": "What would you like to do?"
+        }
+      },
+      "add_static": {
+        "title": "Add Static Location",
+        "description": "Add a fixed location that is always monitored. Zone mode includes all alerts listed for your NWS zone (broader coverage). Point mode only includes alerts whose polygon covers your exact coordinates (more precise).",
+        "data": {
+          "name": "Location name",
+          "source": "How to specify location",
+          "mode": "Query mode",
+          "gps": "GPS coordinates (lat,lon)",
+          "zone": "NWS Zone ID(s) — comma-separated",
+          "ha_zone": "Home Assistant zone"
+        }
+      },
+      "add_tracked": {
+        "title": "Add Tracked Device",
+        "description": "Add a device tracker to receive alerts for wherever the device is located.",
+        "data": {
+          "name": "Location name",
+          "tracker": "Device tracker",
+          "mode": "Query mode"
+        }
+      }
+    }
+  },
+  "error": {
+    "no_zone_or_gps": "Zone mode requires either GPS coordinates (for auto-resolution) or manual zone IDs",
+    "zone_resolve_failed": "Could not resolve GPS coordinates to NWS zones",
+    "zone_no_gps": "Selected zone does not have GPS coordinates",
+    "no_zone_selected": "No zone selected",
+    "no_tracker_selected": "No device tracker selected",
+    "tracker_not_found": "Device tracker not found"
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "WX Watcher Options",
+        "description": "Current locations: {location_list}\n\nAdd a location or save changes.",
+        "data": {
+          "action": "What would you like to do?"
+        }
+      },
+      "add_static": {
+        "title": "Add Static Location",
+        "description": "Add a fixed location that is always monitored.",
+        "data": {
+          "name": "Location name",
+          "source": "How to specify location",
+          "mode": "Query mode",
+          "gps": "GPS coordinates (lat,lon)",
+          "zone": "NWS Zone ID(s) — comma-separated",
+          "ha_zone": "Home Assistant zone"
+        }
+      },
+      "add_tracked": {
+        "title": "Add Tracked Device",
+        "description": "Add a device tracker to receive alerts for wherever the device is located.",
+        "data": {
+          "name": "Location name",
+          "tracker": "Device tracker",
+          "mode": "Query mode"
+        }
+      }
+    }
+  }
+}

@@ -1,91 +1,134 @@
-# Alerts from the US National Weather Service (nws_alerts)
+# WX Watcher
 
-## Description:
+A Home Assistant custom integration for monitoring weather alerts from the US National Weather Service.
 
-This is an updated version of the nws_alerts custom integration for Home Assistant originally found at github.com/eracknaphobia/nws_custom_component
+**Derived in part from [nws_alerts](https://github.com/finity69x2/nws_alerts) by finity69x2 and [nws_custom_component](https://github.com/eracknaphobia/nws_custom_component) by eracknaphobia. See [NOTICE](NOTICE) for details.**
 
-This integration retrieves updated weather alerts every minute from the US NWS API (by default but it can be changed in the config options).
+## Features
 
-You can configure the integration to use your NWS Zone or County ID, your precise location via GPS coordinates or you can get dynamic location alerts by configuring the integration to use a device_tracker entity from HA as long as that device tracker provides GPS coordinates.
+- **Multi-location monitoring** — configure multiple static locations (home, work, school) and tracked devices (phone, car) in a single config entry
+- **Zone and point modes** — each location uses zone queries (broader coverage) or point queries (precise, polygon-based) based on your preference
+- **Automatic zone resolution** — GPS coordinates or Home Assistant zones are automatically resolved to NWS forecast, county, and fire weather zones
+- **Deduplicated alerts** — same alert observed from multiple locations fires one event, with a `sources` list showing which locations detected it
+- **Combined zone queries** — all zone-mode locations are queried in a single API call, minimizing NWS API usage
+- **Event-driven architecture** — fires `wx_watcher_alert_created`, `wx_watcher_alert_updated`, `wx_watcher_alert_cleared`, and `wx_watcher_alert_stale_data` events for precise automation triggers
+- **Dashboard sensor** — `sensor.wx_watcher_alerts` shows current alert count with full details in attributes; `sensor.wx_watcher_last_updated` shows the last successful update time
 
-The integration presents the number of currently active alerts as the state of the sensor and lists many alert details as a list in the attributes of the sensor.
+## Installation
 
-The sensor that is created can be used in my ["NWS Alerts" package](https://github.com/finity69x2/nws_alerts/tree/a31ed70c568f942bb09306ee3580d25ba9811d5a/packages). Use the package appropriate for your version.
+### HACS
 
-You can also display the generated alerts in your frontend. For example usage see [here](https://github.com/finity69x2/nws_alerts/blob/a31ed70c568f942bb09306ee3580d25ba9811d5a/lovelace/alerts_tab.yaml)
+1. Open HACS in Home Assistant
+2. Search for "WX Watcher"
+3. Click Download
 
-Additionally, there is a very nice dashboard card created by another user (@seevee) for use in displaying the sensor data in your frontend. The card is located [here](https://github.com/seevee/weather_alerts_card) and can be installed into Home Assistant via HACS (search for "weather alerts card").
+### Manual
 
-And just to clarify, I'm not the creator or maintainer of that card so any issues or feature requests should be directed to their Github page and not here.
+1. Copy the `custom_components/wx_watcher/` directory into your `custom_components/` folder
+2. Restart Home Assistant
 
-## Installation:
+## Configuration
 
-### HACS:
+Go to **Settings → Devices & Services → Add Integration** and search for "WX Watcher".
 
-- Open the HACS section of Home Assistant.
+### Setup Flow
 
-- Enter "NWS Alerts" into the search bar.
+1. **Name & Settings** — Enter a name (e.g., "WX Watcher"), update interval, and timeout
+2. **Locations Hub** — Add static locations or tracked devices, or finish setup
+3. **Add Static Location** — Choose from:
+   - **Home Assistant zone** — pick a zone from your HA config (auto-resolves GPS and NWS zones)
+   - **Manual GPS** — enter latitude,longitude coordinates
+   - **Manual zone IDs** — enter NWS zone/county codes directly
+4. **Add Tracked Device** — Select a device tracker entity and choose zone or point mode
 
-- Look for "NWS Alerts" in the integrations section.
+### Location Types
 
-- Click on the entry and then click the "Download" at the bottom right corner.
+| Type        | Description                                          |
+| ----------- | ---------------------------------------------------- |
+| **Static**  | Always-monitored fixed location (home, work, school) |
+| **Tracked** | Follows a device_tracker entity (phone, car)         |
 
-### Manually:
+### Query Modes
 
-- Clone the Repository and copy the "nws_alerts" directory from the downloaded directory into your "custom_components" directory in your config directory.
+| Mode      | Behavior                                                                                                                                                    |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Zone**  | Queries all alerts listed for the resolved NWS zones. Broader coverage — includes alerts that may not cover your exact point.                               |
+| **Point** | Queries only alerts whose polygon covers your exact GPS coordinates. More precise — filters out zone-wide alerts that don't actually include your location. |
 
-- `<config directory>/custom_components/nws_alerts/...`
+## Event Schema
 
-After installing the integration into Home Assistant either manually or via HACS you can then configure it using the instructions in the following section.
+Events are fired for each unique alert (deduplicated across locations):
 
-## Configuration:
+| Event                         | When                          |
+| ----------------------------- | ----------------------------- |
+| `wx_watcher_alert_created`    | New alert appears             |
+| `wx_watcher_alert_updated`    | Existing alert's data changes |
+| `wx_watcher_alert_cleared`    | Alert is no longer active     |
+| `wx_watcher_alert_stale_data` | NWS API fetch failed          |
 
-Go to "Settings" > "Devices & Services" and in the "Integrations" tab click on "+Add Integration" in the bottom right corner
+### Event Data
 
-Search for "NWS Alerts" in the list of integrations and follow the UI prompts to configure the integration.
+Each event carries these fields:
 
-\*\*\* There are a few configuration method options to select from. Please see the following link to help you decide which option to use: https://github.com/finity69x2/nws_alerts/blob/master/lookup_options.md
+| Field                                           | Description                                                                                    |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `Event`                                         | Alert type (e.g., "Excessive Heat Warning")                                                    |
+| `ID`                                            | Stable UUID for the alert                                                                      |
+| `URL`                                           | NWS alert URL                                                                                  |
+| `Headline`                                      | NWS headline text                                                                              |
+| `Type`                                          | Alert type (Alert, Update, Cancel, etc.)                                                       |
+| `NWSCode`                                       | NWS event code                                                                                 |
+| `Status`                                        | Alert status                                                                                   |
+| `Severity`                                      | Severity level                                                                                 |
+| `Certainty`                                     | Certainty level                                                                                |
+| `Urgency`                                       | Urgency level                                                                                  |
+| `Response`                                      | Recommended response                                                                           |
+| `AreasAffected`                                 | Area description                                                                               |
+| `Description`                                   | Full alert description                                                                         |
+| `Instruction`                                   | Recommended actions                                                                            |
+| `Sent`, `Onset`, `Expires`, `Ends`, `Effective` | Timestamps                                                                                     |
+| `VTEC`, `VTECAction`                            | VTEC codes                                                                                     |
+| `References`                                    | Referenced previous alerts                                                                     |
+| `SenderName`                                    | Issuing NWS office                                                                             |
+| `config_entry_id`                               | Config entry that fired the event                                                              |
+| `sources`                                       | List of `{"location": "...", "mode": "..."}` dicts showing which locations observed this alert |
 
-### If using use either a Zone or County Code:
+### Automation Example
 
-1. Zone:
-   - Open [NWS GIS Viewer](https://viewer.weather.noaa.gov). This is an interactive GIS map.
-   - When the map loads find the 'Layers' button toward the top right of the browser window. I recommend using the 'Clear Layers' button first.
+No dedup condition is needed — the integration already deduplicates:
 
-   - Enable 'Reference Layers' -> 'Surface Weather Forecast Zones' -> 'Public Weather Forecast Zones'
-   - Find your zone ID on the map.
-   - To use the zone id code you will need to modify it as follows:
-     - The state abbreviation from the zone id followed by 'Z' then the three digit numerical portion of the zone id.
-     - For example if the zone id is IN009 the code you will use is INZ009
+```yaml
+automation:
+  - alias: WX Watcher → Notifications
+    trigger:
+      - trigger: event
+        event_type: wx_watcher_alert_created
+    action:
+      - action: notify.mobile_phone
+        data:
+          title: "{{ trigger.event.data.Event }}"
+          message: "{{ trigger.event.data.Headline }}"
+          data:
+            url: "{{ trigger.event.data.URL }}"
+```
 
-2. County:
-   - Go to https://www.weather.gov/pimar/FIPSCodes
-   - Find your state then click on the 'jpg' link in the far right column
-   - Look in the map to find your county.
-   - To use the county id code you will need to modify it as follows:
-     - Use the two letter USPS state abbreviation followed by 'C' then the last three digits of the county id.
-     - For example if the county id is 18033 the code you will use is INC033 (18 is the state code for indiana)
+## Sensors
 
-### If using either GPS coordinates or a device tracker:
+| Entity                           | State                            | Attributes                                                                           |
+| -------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------ |
+| `sensor.wx_watcher_alerts`       | Number of active alerts          | `Alerts` (full list with sources), `locations` (configured locations), `attribution` |
+| `sensor.wx_watcher_last_updated` | Last successful update timestamp | `attribution`                                                                        |
 
-- If you choose to use the GPS option then the location used by your Home Assistant installation will be entered by default. You can change those GPS coordinates to any that you desire.
+## Breaking Changes from nws_alerts v6
 
-- If you select the "Using a device tracker" option under the "GPS Location" option then HA will use the GPS coordinates provided by that tracker to query for alerts so you should follow the same recommendations for using GPS coordinates when using that option.
+WX Watcher is a complete redesign. If you were using the `nws_alerts` integration:
 
-After you restart Home Assistant then you should have a new sensor (by default) called "sensor.nws_alerts_alerts" in your system.
+- **You must delete your old config entries and reconfigure** — the data model is incompatible
+- The domain changed from `nws_alerts to `wx_watcher` — all entity IDs change
+- Event names changed from `nws_alerts_alert_*` to `wx_watcher_alert_*`
+- Event data no longer includes `config_name`; it now includes `sources`
+- The old per-entry dedup automation condition (`config_name != 'NWS Alerts Phone'`) is no longer needed
 
-## Testing:
+## Attribution
 
-If there are currently no active alerts for your location but you want to do testing you can use any manually configured location ID that has an active alert.
-
-To find those locations go to: https://api.weather.gov/alerts/active/count you will see a list of all areas with active alerts and how many alerts are active for each area.
-
-You can use the given code(s) in your config to get the alerts for the selected zones in the integration.
-
-## Additional Information:
-
-In release 6.6 I've added "NWSCode" to the Alert list as an additional way to filter alerts. It may make it easier to filter using the code than needing to search thru text strings as I do now in my example packages.
-
-For a full list of the NWS Even Codes see here:
-
-https://vlab.noaa.gov/web/nws-common-alerting-protocol/cap-documentation#_eventcode_inclusion-16
+This integration is derived from [nws_alerts](https://github.com/finity69x2/nws_alerts) by finity69x2, which is derived from [nws_custom_component](https://github.com/eracknaphobia/nws_custom_component) by eracknaphobia. Neither upstream project includes a license. See [NOTICE](NOTICE) for the full provenance inventory.

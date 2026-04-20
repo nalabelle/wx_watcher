@@ -1,3 +1,23 @@
+[project]
+name = "wx-watcher"
+version = "7.0.0"
+requires-python = ">=3.13"
+
+[dependency-groups]
+test = [
+    "pytest-homeassistant-custom-component",
+    "aioresponses",
+]
+dev = [
+    "mypy",
+    "ruff",
+    "types-PyYAML",
+]
+
+[tool.uv]
+python-preference = "only-system"
+python-downloads = "manual"
+
 [tool.mypy]
 platform = "linux"
 python_version = "3.13"

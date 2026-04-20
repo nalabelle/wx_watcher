@@ -1,6 +1,64 @@
 """Constants for tests."""
 
-CONFIG_DATA = {"name": "NWS Alerts", "zone_id": "AZZ540,AZC013"}
-CONFIG_DATA_2 = {"name": "NWS Alerts YAML", "zone_id": "AZZ540"}
-CONFIG_DATA_3 = {"name": "NWS Alerts", "gps_loc": "123,-456"}
-CONFIG_DATA_BAD = {"name": "NWS Alerts"}
+from custom_components.wx_watcher.const import (
+    CONF_LOCATION_GPS,
+    CONF_LOCATION_MODE,
+    CONF_LOCATION_NAME,
+    CONF_LOCATION_TYPE,
+    CONF_LOCATION_ZONE,
+    LOCATION_MODE_POINT,
+    LOCATION_MODE_ZONE,
+    LOCATION_TYPE_STATIC,
+)
+
+CONFIG_DATA = {
+    "name": "WX Watcher",
+    "interval": 1,
+    "timeout": 120,
+    "locations": [
+        {
+            CONF_LOCATION_NAME: "Home",
+            CONF_LOCATION_TYPE: LOCATION_TYPE_STATIC,
+            CONF_LOCATION_MODE: LOCATION_MODE_ZONE,
+            CONF_LOCATION_GPS: "33.25,-112.30",
+            CONF_LOCATION_ZONE: "AZZ540,AZC013",
+        },
+    ],
+}
+
+CONFIG_DATA_TWO_LOCATIONS = {
+    "name": "WX Watcher",
+    "interval": 1,
+    "timeout": 120,
+    "locations": [
+        {
+            CONF_LOCATION_NAME: "Home",
+            CONF_LOCATION_TYPE: LOCATION_TYPE_STATIC,
+            CONF_LOCATION_MODE: LOCATION_MODE_ZONE,
+            CONF_LOCATION_GPS: "33.25,-112.30",
+            CONF_LOCATION_ZONE: "AZZ540,AZC013",
+        },
+        {
+            CONF_LOCATION_NAME: "Work",
+            CONF_LOCATION_TYPE: LOCATION_TYPE_STATIC,
+            CONF_LOCATION_MODE: LOCATION_MODE_POINT,
+            CONF_LOCATION_GPS: "33.45,-112.06",
+            CONF_LOCATION_ZONE: "",
+        },
+    ],
+}
+
+CONFIG_DATA_POINT_ONLY = {
+    "name": "WX Watcher",
+    "interval": 1,
+    "timeout": 120,
+    "locations": [
+        {
+            CONF_LOCATION_NAME: "Home",
+            CONF_LOCATION_TYPE: LOCATION_TYPE_STATIC,
+            CONF_LOCATION_MODE: LOCATION_MODE_POINT,
+            CONF_LOCATION_GPS: "33.25,-112.30",
+            CONF_LOCATION_ZONE: "",
+        },
+    ],
+}

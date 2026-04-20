@@ -1,6 +1,0 @@
-pytest-homeassistant-custom-component
-mypy
-pytest
-aioresponses
-ruff
-types-PyYAML

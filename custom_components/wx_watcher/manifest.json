@@ -1,0 +1,13 @@
+{
+  "domain": "wx_watcher",
+  "name": "WX Watcher",
+  "codeowners": ["@nalabelle"],
+  "config_flow": true,
+  "min_version": "2026.2.0",
+  "dependencies": [],
+  "documentation": "https://github.com/nalabelle/wx_watcher/",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/nalabelle/wx_watcher/issues",
+  "requirements": [],
+  "version": "7.0.0"
+}

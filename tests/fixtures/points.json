@@ -1,0 +1,34 @@
+{
+  "@context": [
+    "https://geojson.org/geojson-ld/geojson-context.jsonld",
+    {
+      "@version": "1.1",
+      "wx": "https://api.weather.gov/ontology#",
+      "@vocab": "https://api.weather.gov/ontology#"
+    }
+  ],
+  "id": "https://api.weather.gov/points/33.25,-112.30",
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [-112.3, 33.25]
+  },
+  "properties": {
+    "@id": "https://api.weather.gov/points/33.25,-112.30",
+    "@type": "wx:Point",
+    "cwa": "PSR",
+    "forecastOffice": "https://api.weather.gov/offices/PSR",
+    "gridId": "PSR",
+    "gridX": 148,
+    "gridY": 64,
+    "forecast": "https://api.weather.gov/gridpoints/PSR/148,64/forecast",
+    "forecastHourly": "https://api.weather.gov/gridpoints/PSR/148,64/forecast/hourly",
+    "forecastGridData": "https://api.weather.gov/gridpoints/PSR/148,64",
+    "observationStations": "https://api.weather.gov/gridpoints/PSR/148,64/stations",
+    "forecastZone": "https://api.weather.gov/zones/forecast/AZZ540",
+    "county": "https://api.weather.gov/zones/county/AZC013",
+    "fireWeatherZone": "https://api.weather.gov/zones/fire/AZZ540",
+    "timeZone": "America/Phoenix",
+    "radarStation": "KIWA"
+  }
+}
