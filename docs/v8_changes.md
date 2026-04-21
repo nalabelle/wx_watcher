@@ -49,3 +49,24 @@ This means:
 See `blueprints/automation/wx_watcher_ticker.yaml` — routes alert notifications
 per-user based on static locations and tracked devices. Supports multiple zones
 and multiple devices per automation instance.
+
+## VTEC Significance Field
+
+Alert events now include a `Significance` field extracted from the NWS VTEC string.
+This is the VTEC significance code — `W` for Warning, `A` for Watch, `Y` for
+Advisory, etc. — and is more reliable than text-matching the `Event` field.
+
+The blueprint now routes alerts by `Significance` code instead of substring
+matching on `Event`. Non-VTEC alerts (e.g., Air Quality Alert) have an empty
+`Significance` and fall to the default advisory category.
+
+A new `vtec/` subpackage provides strict VTEC parsing with full spec validation.
+Any deviation from the expected format raises `VTECParseError` with detailed
+diagnostics — no silent fallback on safety-critical alert data.
+
+## GPS Input Guard
+
+The coordinator now guards against empty or malformed GPS coordinates for
+tracked devices and point-mode locations. Previously, `_parse_gps()` could
+crash the entire update cycle on bad input. It now logs a warning and skips
+the affected location.
