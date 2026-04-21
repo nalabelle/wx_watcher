@@ -22,7 +22,7 @@ The `location` key has been removed.
 ## Tracker Skip Optimization
 
 When a tracked device's state indicates it is inside a static location's HA zone
-(e.g., device_tracker state is `"home"` when `zone.home` is a static location),
+(e.g., device_tracker state is `"zone.home"` when `zone.home` is a static location),
 the coordinator skips the tracked device's NWS API query entirely. The static
 location's zone query is a superset — it already covers the area.
 
@@ -33,6 +33,12 @@ This means:
 - When phone is away: both queries run. Home events carry `ha_zone`,
   phone events carry `tracker`. These are different alerts (different IDs)
   for different geographic areas.
+
+> **Bug fix:** The initial implementation compared tracker state against
+> stripped zone slugs (`"home"`) instead of full entity IDs (`"zone.home"`),
+> so the skip check never matched. This has been corrected — the coordinator
+> now stores full entity IDs in the static-zone set, matching the format
+> that device_tracker entities report.
 
 ## Config Flow Changes
 

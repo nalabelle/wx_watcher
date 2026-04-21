@@ -14,7 +14,7 @@ from custom_components.wx_watcher.const import (
     EVENT_ALERT_UPDATED,
 )
 from tests.conftest import ZONE_URL
-from tests.const import CONFIG_DATA, CONFIG_DATA_POINT_ONLY
+from tests.const import CONFIG_DATA, CONFIG_DATA_POINT_ONLY, CONFIG_DATA_TRACKER_IN_STATIC_ZONE
 
 pytestmark = pytest.mark.asyncio
 
@@ -307,3 +307,60 @@ class TestPointMode:
 def load_fixture(filename):
     """Load a test fixture."""
     return pathlib.Path(__file__).parent.joinpath("fixtures", filename).read_text(encoding="utf8")
+
+
+class TestTrackerSkipOptimization:
+    """Tests for tracker-skip optimization when tracker is inside a static zone."""
+
+    async def test_tracker_in_static_zone_skipped(self, hass, mock_aioclient):
+        """Tracker inside a static zone should be skipped — only zone query fires."""
+        hass.states.async_set(
+            "device_tracker.phone",
+            "zone.home",
+            {"latitude": 33.25, "longitude": -112.30, "friendly_name": "Phone"},
+        )
+
+        mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api.json"))
+        mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api.json"))
+
+        events = []
+
+        def listener(event):
+            events.append(event)
+
+        hass.bus.async_listen(EVENT_ALERT_CREATED, listener)
+
+        await _setup_entry(hass, mock_aioclient, CONFIG_DATA_TRACKER_IN_STATIC_ZONE)
+
+        created = [e for e in events if e.event_type == EVENT_ALERT_CREATED]
+        assert len(created) == 2
+
+        for e in created:
+            sources = e.data["sources"]
+            assert any(s.get("ha_zone") == "zone.home" for s in sources)
+            assert not any(s.get("tracker") == "device_tracker.phone" for s in sources)
+
+    async def test_tracker_away_from_static_zone_not_skipped(self, hass, mock_aioclient):
+        """Tracker away from static zone should not be skipped — both queries fire."""
+        hass.states.async_set(
+            "device_tracker.phone",
+            "not_home",
+            {"latitude": 33.50, "longitude": -112.00, "friendly_name": "Phone"},
+        )
+
+        point_url = "https://api.weather.gov/alerts/active?point=33.5,-112.0"
+        mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api.json"))
+        mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api.json"))
+        mock_aioclient.get(point_url, status=200, body=load_fixture("api.json"))
+
+        events = []
+
+        def listener(event):
+            events.append(event)
+
+        hass.bus.async_listen(EVENT_ALERT_CREATED, listener)
+
+        await _setup_entry(hass, mock_aioclient, CONFIG_DATA_TRACKER_IN_STATIC_ZONE)
+
+        created = [e for e in events if e.event_type == EVENT_ALERT_CREATED]
+        assert len(created) >= 2

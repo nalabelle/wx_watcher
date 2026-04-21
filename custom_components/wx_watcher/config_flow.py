@@ -148,13 +148,17 @@ async def _validate_static(
     zone_str = user_input.get(CONF_LOCATION_ZONE, "")
     gps = ""
 
-    state = hass.states.get(ha_zone)
-    if not state:
+    if not ha_zone:
         errors["base"] = "no_zone_selected"
-    elif "latitude" not in state.attributes or "longitude" not in state.attributes:
-        errors["base"] = "zone_no_gps"
-    else:
-        gps = f"{state.attributes['latitude']},{state.attributes['longitude']}"
+
+    if not errors:
+        state = hass.states.get(ha_zone)
+        if not state:
+            errors["base"] = "no_zone_selected"
+        elif "latitude" not in state.attributes or "longitude" not in state.attributes:
+            errors["base"] = "zone_no_gps"
+        else:
+            gps = f"{state.attributes['latitude']},{state.attributes['longitude']}"
 
     if not errors and mode == LOCATION_MODE_ZONE and not zone_str:
         instance_id = await async_get_instance_id(hass)
