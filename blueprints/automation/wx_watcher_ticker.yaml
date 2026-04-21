@@ -21,6 +21,10 @@ blueprint:
 
     Designed for [Ticker](https://github.com/analytix-energy-solutions/ticker). Category
     names must match your Ticker category names or IDs.
+
+    The automation is queued with a max of 10 concurrent runs. If your area
+    frequently has more than 10 simultaneous alerts, raise `max` after
+    importing the blueprint.
   domain: automation
   source_url: https://github.com/nalabelle/wx_watcher/blob/main/blueprints/automation/wx_watcher_ticker.yaml
   author: nalabelle

@@ -133,13 +133,13 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _fetch_all_locations(self) -> dict[str, Any]:
         """Fetch alerts for all configured locations."""
-        static_zone_slugs = {
-            loc[CONF_LOCATION_HA_ZONE].replace("zone.", "")
+        static_zone_entity_ids = {
+            loc[CONF_LOCATION_HA_ZONE]
             for loc in self._locations
             if loc[CONF_LOCATION_TYPE] == LOCATION_TYPE_STATIC and loc.get(CONF_LOCATION_HA_ZONE)
         }
 
-        location_zones, point_tasks = await self._build_fetch_tasks(static_zone_slugs)
+        location_zones, point_tasks = await self._build_fetch_tasks(static_zone_entity_ids)
 
         all_zone_ids: set[str] = set()
         for loc_zones in location_zones.values():
@@ -164,7 +164,7 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
         }
 
     async def _build_fetch_tasks(
-        self, static_zone_slugs: set[str]
+        self, static_zone_entity_ids: set[str]
     ) -> tuple[dict[str, set[str]], list[tuple[dict, tuple[float, float]]]]:
         """Build zone-lookup and point-fetch tasks from configured locations."""
         location_zones: dict[str, set[str]] = {}
@@ -177,7 +177,7 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
             if loc_type == LOCATION_TYPE_TRACKED:
                 tracker_entity = loc[CONF_LOCATION_TRACKER]
                 tracker_state = self.hass.states.get(tracker_entity)
-                if tracker_state and tracker_state.state in static_zone_slugs:
+                if tracker_state and tracker_state.state in static_zone_entity_ids:
                     _LOGGER.debug(
                         "Tracker %s is inside static zone %s, skipping",
                         tracker_entity,
