@@ -1,5 +1,7 @@
 """Test NWS API client functions."""
 
+import logging
+
 from custom_components.wx_watcher.api import generate_id, parse_alert
 
 
@@ -62,6 +64,7 @@ def test_parse_alert():
     assert result["Severity"] == "Severe"
     assert result["_ugc"] == ["AZZ540", "AZC013"]
     assert result["VTECAction"] == "NEW"
+    assert result["Significance"] == "Y"
 
 
 def test_parse_alert_missing_properties():
@@ -79,3 +82,42 @@ def test_parse_alert_missing_id():
     }
     result = parse_alert(raw)
     assert result is None
+
+
+def test_parse_alert_no_vtec():
+    """Test parsing an alert with empty VTEC list."""
+    raw = {
+        "id": "https://api.weather.gov/alerts/urn:oid:no-vtec",
+        "type": "Feature",
+        "properties": {
+            "event": "Air Quality Alert",
+            "geocode": {"SAME": [], "UGC": []},
+            "parameters": {"NWSheadline": ["AIR QUALITY ALERT"], "VTEC": []},
+        },
+    }
+    result = parse_alert(raw)
+    assert result is not None
+    assert result["VTECAction"] is None
+    assert result["Significance"] == ""
+
+
+def test_parse_alert_bad_vtec(caplog):
+    """Test parsing an alert with malformed VTEC string."""
+    raw = {
+        "id": "https://api.weather.gov/alerts/urn:oid:bad-vtec",
+        "type": "Feature",
+        "properties": {
+            "event": "Test Alert",
+            "geocode": {"SAME": [], "UGC": []},
+            "parameters": {
+                "NWSheadline": ["TEST"],
+                "VTEC": ["NOT-A-VTEC-STRING"],
+            },
+        },
+    }
+    with caplog.at_level(logging.WARNING, logger="custom_components.wx_watcher.api"):
+        result = parse_alert(raw)
+    assert result is not None
+    assert result["VTECAction"] is None
+    assert result["Significance"] == ""
+    assert "Failed to parse VTEC" in caplog.text

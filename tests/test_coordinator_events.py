@@ -45,6 +45,7 @@ EXPECTED_ALERT_FIELDS = {
     "FormattedHeadline",
     "VTEC",
     "VTECAction",
+    "Significance",
     "References",
     "config_entry_id",
     "sources",

@@ -67,28 +67,29 @@ Events are fired for each unique alert (deduplicated across locations):
 
 Each event carries these fields:
 
-| Field                                           | Description                                                                                                                                |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Event`                                         | Alert type (e.g., "Excessive Heat Warning")                                                                                                |
-| `ID`                                            | Stable UUID for the alert                                                                                                                  |
-| `URL`                                           | NWS alert URL                                                                                                                              |
-| `Headline`                                      | NWS headline text                                                                                                                          |
-| `Type`                                          | Alert type (Alert, Update, Cancel, etc.)                                                                                                   |
-| `NWSCode`                                       | NWS event code                                                                                                                             |
-| `Status`                                        | Alert status                                                                                                                               |
-| `Severity`                                      | Severity level                                                                                                                             |
-| `Certainty`                                     | Certainty level                                                                                                                            |
-| `Urgency`                                       | Urgency level                                                                                                                              |
-| `Response`                                      | Recommended response                                                                                                                       |
-| `AreasAffected`                                 | Area description                                                                                                                           |
-| `Description`                                   | Full alert description                                                                                                                     |
-| `Instruction`                                   | Recommended actions                                                                                                                        |
-| `Sent`, `Onset`, `Expires`, `Ends`, `Effective` | Timestamps                                                                                                                                 |
-| `VTEC`, `VTECAction`                            | VTEC codes                                                                                                                                 |
-| `References`                                    | Referenced previous alerts                                                                                                                 |
-| `SenderName`                                    | Issuing NWS office                                                                                                                         |
-| `config_entry_id`                               | Config entry that fired the event                                                                                                          |
-| `sources`                                       | List of source dicts. Static: `{"ha_zone": "zone.home", "mode": "zone"}`. Tracked: `{"tracker": "device_tracker.phone", "mode": "point"}`. |
+| Field                                           | Description                                                                                                                                                     |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Event`                                         | Alert type (e.g., "Excessive Heat Warning")                                                                                                                     |
+| `ID`                                            | Stable UUID for the alert                                                                                                                                       |
+| `URL`                                           | NWS alert URL                                                                                                                                                   |
+| `Headline`                                      | NWS headline text                                                                                                                                               |
+| `Type`                                          | Alert type (Alert, Update, Cancel, etc.)                                                                                                                        |
+| `NWSCode`                                       | NWS event code                                                                                                                                                  |
+| `Status`                                        | Alert status                                                                                                                                                    |
+| `Severity`                                      | Severity level                                                                                                                                                  |
+| `Certainty`                                     | Certainty level                                                                                                                                                 |
+| `Urgency`                                       | Urgency level                                                                                                                                                   |
+| `Response`                                      | Recommended response                                                                                                                                            |
+| `AreasAffected`                                 | Area description                                                                                                                                                |
+| `Description`                                   | Full alert description                                                                                                                                          |
+| `Instruction`                                   | Recommended actions                                                                                                                                             |
+| `Sent`, `Onset`, `Expires`, `Ends`, `Effective` | Timestamps                                                                                                                                                      |
+| `VTEC`, `VTECAction`                            | VTEC codes                                                                                                                                                      |
+| `Significance`                                  | VTEC significance code (`W` = Warning, `A` = Watch, `Y` = Advisory, `S` = Statement, `O` = Outlook, `N` = Synopsis, `F` = Forecast). Empty for non-VTEC alerts. |
+| `References`                                    | Referenced previous alerts                                                                                                                                      |
+| `SenderName`                                    | Issuing NWS office                                                                                                                                              |
+| `config_entry_id`                               | Config entry that fired the event                                                                                                                               |
+| `sources`                                       | List of source dicts. Static: `{"ha_zone": "zone.home", "mode": "zone"}`. Tracked: `{"tracker": "device_tracker.phone", "mode": "point"}`.                      |
 
 ### Automation Example
 

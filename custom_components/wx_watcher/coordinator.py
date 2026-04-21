@@ -41,10 +41,26 @@ from .events import async_fire_alert_events, async_fire_stale_data_event
 _LOGGER = logging.getLogger(__name__)
 
 
-def _parse_gps(gps_str: str) -> tuple[float, float]:
+def _parse_gps_str(gps_str: str) -> tuple[float, float]:
     """Parse a ``lat,lon`` string into a float tuple."""
     parts = gps_str.replace(" ", "").split(",")
     return float(parts[0]), float(parts[1])
+
+
+def _safe_parse_gps(loc: dict[str, Any]) -> tuple[float, float] | None:
+    """Parse GPS coordinates from a location dict, with validation and error handling.
+
+    Returns (lat, lon) on success, or None with a logged warning on failure.
+    """
+    gps = loc.get(CONF_LOCATION_GPS, "")
+    if not gps:
+        _LOGGER.warning("No GPS coordinates for %s, skipping", _entity_id(loc))
+        return None
+    try:
+        return _parse_gps_str(gps)
+    except (ValueError, IndexError) as err:
+        _LOGGER.warning("Invalid GPS format for %s: %s", _entity_id(loc), err)
+        return None
 
 
 def _entity_id(loc: dict[str, Any]) -> str:
@@ -101,6 +117,7 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
         return self._entry_id
 
     async def _async_update_data(self) -> dict[str, Any]:
+        """Fetch data from all locations and merge."""
         async with async_timeout(self._timeout):
             try:
                 data = await self._fetch_all_locations()
@@ -180,7 +197,10 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
             if loc_mode == LOCATION_MODE_ZONE:
                 zone_str = loc.get(CONF_LOCATION_ZONE, "")
                 if loc_type == LOCATION_TYPE_TRACKED or not zone_str:
-                    lat, lon = _parse_gps(loc[CONF_LOCATION_GPS])
+                    coords = _safe_parse_gps(loc)
+                    if coords is None:
+                        continue
+                    lat, lon = coords
                     zones = await resolve_zones(self._session, self._user_agent, lat, lon)
                     if zones is None:
                         _LOGGER.warning(
@@ -195,7 +215,10 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
                 location_zones[_entity_id(loc)] = loc_zones
 
             elif loc_mode == LOCATION_MODE_POINT:
-                lat, lon = _parse_gps(loc[CONF_LOCATION_GPS])
+                coords = _safe_parse_gps(loc)
+                if coords is None:
+                    continue
+                lat, lon = coords
                 point_tasks.append((loc, (lat, lon)))
 
         return location_zones, point_tasks

@@ -12,8 +12,8 @@ blueprint:
     are currently inside a configured static location's HA zone, since the
     zone query is a superset. No duplicate queries or redundant notifications.
 
-    - **Warning** alerts (🔴) use the warning category
-    - **Watch** alerts (🟡) use the watch category
+    - **Warning** alerts (🔴, VTEC significance `W`) use the warning category
+    - **Watch** alerts (🟡, VTEC significance `A`) use the watch category
     - **Advisory** and other alerts (🔵) use the advisory category
     - Cleared alerts send a clear message to dismiss the notification
 
@@ -116,7 +116,7 @@ actions:
           - conditions:
               - condition: template
                 value_template: >-
-                  {{ 'Warning' in trigger.event.data.Event }}
+                  {{ trigger.event.data.Significance == 'W' }}
             sequence:
               - action: ticker.notify
                 data:
@@ -135,7 +135,7 @@ actions:
           - conditions:
               - condition: template
                 value_template: >-
-                  {{ 'Watch' in trigger.event.data.Event }}
+                  {{ trigger.event.data.Significance == 'A' }}
             sequence:
               - action: ticker.notify
                 data:

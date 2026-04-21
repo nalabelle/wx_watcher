@@ -15,6 +15,7 @@ import uuid
 import aiohttp
 
 from .const import API_ENDPOINT
+from .vtec import VTECParseError, parse_vtec
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -173,12 +174,27 @@ def parse_alert(raw_alert: dict[str, Any]) -> dict[str, Any] | None:
         "FormattedHeadline": props.get("headline", ""),
         "VTEC": props.get("parameters", {}).get("VTEC", []),
         "VTECAction": None,
+        "Significance": "",
         "References": props.get("references", []),
         "_ugc": ugc,
     }
 
     vtec_list = parsed["VTEC"]
-    parsed["VTECAction"] = vtec_list[0].split(".")[1] if vtec_list else None
+    if vtec_list:
+        try:
+            tokens = parse_vtec(vtec_list[0])
+        except VTECParseError:
+            _LOGGER.warning(
+                "Failed to parse VTEC for alert %s: %s",
+                alert_id,
+                vtec_list[0],
+                exc_info=True,
+            )
+        else:
+            parsed["VTECAction"] = tokens.action
+            parsed["Significance"] = tokens.significance
+    else:
+        parsed["VTECAction"] = None
 
     return parsed
 
