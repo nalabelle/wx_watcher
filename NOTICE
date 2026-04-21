@@ -17,18 +17,17 @@ removed, those attribution comments should be updated or removed accordingly.
 Derived code by file:
   - __init__.py: setup/unload pattern, startup logging, user agent construction,
     coordinator storage pattern (from finity69x2/nws_alerts)
-  - const.py: API endpoint, constant naming conventions, default values,
-    event naming pattern (from finity69x2/nws_alerts, originally from
+  - const.py: API endpoint, constant naming conventions, event naming pattern
+    (from finity69x2/nws_alerts, originally from
     eracknaphobia/nws_custom_component)
   - api.py: generate_id() MD5->UUID algorithm, HTTP fetch pattern,
     alert field extraction from NWS API responses (from finity69x2/nws_alerts)
   - coordinator.py: DataUpdateCoordinator structure, _async_update_data pattern
-    with async_timeout + UpdateFailed, _get_tracker_gps (from finity69x2/nws_alerts)
+    with async_timeout + UpdateFailed (from finity69x2/nws_alerts)
   - sensor.py: SENSOR_TYPES dict, CoordinatorEntity class structure, state/
     device_info properties, async_setup_entry pattern
     (from finity69x2/nws_alerts)
   - manifest.json: structure and field names (from finity69x2/nws_alerts)
 
 The original nws_custom_component by eracknaphobia contributed the concept and
-initial API endpoint/constant definitions (API_ENDPOINT, USER_AGENT, DEFAULT_ICON,
-DEFAULT_NAME, CONF_ZONE_ID, ZONE_ID).
+initial API endpoint/constant definitions (API_ENDPOINT, USER_AGENT, DEFAULT_ICON).

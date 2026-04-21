@@ -15,8 +15,8 @@ from custom_components.wx_watcher.const import (
 
 CONFIG_DATA = {
     "name": "WX Watcher",
-    "interval": 1,
-    "timeout": 120,
+    "interval": 60,
+    "timeout": 60,
     "locations": [
         {
             CONF_LOCATION_TYPE: LOCATION_TYPE_STATIC,
@@ -30,8 +30,8 @@ CONFIG_DATA = {
 
 CONFIG_DATA_TWO_LOCATIONS = {
     "name": "WX Watcher",
-    "interval": 1,
-    "timeout": 120,
+    "interval": 60,
+    "timeout": 60,
     "locations": [
         {
             CONF_LOCATION_TYPE: LOCATION_TYPE_STATIC,
@@ -52,8 +52,8 @@ CONFIG_DATA_TWO_LOCATIONS = {
 
 CONFIG_DATA_POINT_ONLY = {
     "name": "WX Watcher",
-    "interval": 1,
-    "timeout": 120,
+    "interval": 60,
+    "timeout": 60,
     "locations": [
         {
             CONF_LOCATION_TYPE: LOCATION_TYPE_STATIC,
@@ -67,8 +67,8 @@ CONFIG_DATA_POINT_ONLY = {
 
 CONFIG_DATA_TRACKER_IN_STATIC_ZONE = {
     "name": "WX Watcher",
-    "interval": 1,
-    "timeout": 120,
+    "interval": 60,
+    "timeout": 60,
     "locations": [
         {
             CONF_LOCATION_TYPE: LOCATION_TYPE_STATIC,

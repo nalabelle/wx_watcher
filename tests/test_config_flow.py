@@ -18,15 +18,9 @@ async def test_form_static_zone(hass):
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": config_entries.SOURCE_USER}
         )
-        assert result["type"] == FlowResultType.FORM
-
-        user_data = {
-            "name": "Testing Alerts",
-            "interval": 1,
-            "timeout": 120,
-        }
-        result = await hass.config_entries.flow.async_configure(result["flow_id"], user_data)
         await hass.async_block_till_done()
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "locations"
 
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {"action": "add_static"}
@@ -49,7 +43,7 @@ async def test_form_static_zone(hass):
             result["flow_id"], {"action": "done"}
         )
         assert result["type"] == FlowResultType.CREATE_ENTRY
-        assert result["title"] == "Testing Alerts"
+        assert result["title"] == "WX Watcher"
         assert len(result["data"]["locations"]) == 1
         assert result["data"]["locations"][0]["ha_zone"] == "zone.home"
         assert result["data"]["locations"][0]["zone"] == "AZC013,AZZ540"
@@ -64,9 +58,8 @@ async def test_form_static_zone_with_manual_edit(hass):
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": config_entries.SOURCE_USER}
         )
-        user_data = {"name": "Testing", "interval": 1, "timeout": 120}
-        result = await hass.config_entries.flow.async_configure(result["flow_id"], user_data)
         await hass.async_block_till_done()
+        assert result["step_id"] == "locations"
 
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {"action": "add_static"}
@@ -94,9 +87,8 @@ async def test_form_static_point_mode(hass):
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": config_entries.SOURCE_USER}
         )
-        user_data = {"name": "Testing", "interval": 1, "timeout": 120}
-        result = await hass.config_entries.flow.async_configure(result["flow_id"], user_data)
         await hass.async_block_till_done()
+        assert result["step_id"] == "locations"
 
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {"action": "add_static"}

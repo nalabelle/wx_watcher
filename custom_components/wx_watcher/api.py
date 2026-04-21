@@ -70,14 +70,14 @@ async def fetch_zone_alerts(
     session: aiohttp.ClientSession,
     user_agent: str,
     zone_ids: list[str],
-) -> list[dict[str, Any]]:
+) -> tuple[list[dict[str, Any]], str]:
     """Fetch active alerts for a combined set of zone IDs.
 
     The zone_ids list is joined with commas for a single ?zone= query.
-    Returns a list of raw alert dicts from the API response.
+    Returns a tuple of (raw alert features list, updated timestamp string).
     """
     if not zone_ids:
-        return []
+        return [], ""
 
     url = f"{API_ENDPOINT}/alerts/active?zone={','.join(zone_ids)}"
     return await _fetch_alerts(session, user_agent, url, f"zones {zone_ids}")
@@ -88,10 +88,10 @@ async def fetch_point_alerts(
     user_agent: str,
     lat: float,
     lon: float,
-) -> list[dict[str, Any]]:
+) -> tuple[list[dict[str, Any]], str]:
     """Fetch active alerts for a GPS point.
 
-    Returns a list of raw alert dicts from the API response.
+    Returns a tuple of (raw alert features list, updated timestamp string).
     """
     url = f"{API_ENDPOINT}/alerts/active?point={lat},{lon}"
     return await _fetch_alerts(session, user_agent, url, f"point {lat},{lon}")
@@ -102,8 +102,11 @@ async def _fetch_alerts(
     user_agent: str,
     url: str,
     desc: str,
-) -> list[dict[str, Any]]:
-    """Fetch and return raw alert features from an NWS API URL."""
+) -> tuple[list[dict[str, Any]], str]:
+    """Fetch and return raw alert features from an NWS API URL.
+
+    Returns a tuple of (features list, updated timestamp string).
+    """
     headers = {"User-Agent": user_agent, "Accept": "application/geo+json"}
     _LOGGER.debug("Fetching alerts for %s from %s", desc, url)
 
@@ -111,8 +114,9 @@ async def _fetch_alerts(
         if r.status == 200:
             data = await r.json()
             features = data.get("features", [])
+            updated = data.get("updated", "")
             _LOGGER.debug("Got %d alerts for %s", len(features), desc)
-            return features
+            return features, updated
         msg = f"Problem fetching alerts for {desc}: ({r.status}) {r.reason}"
         _LOGGER.warning(msg)
         raise NWSApiError(msg)

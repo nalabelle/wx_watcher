@@ -32,20 +32,28 @@ LOCATION_MODE_POINT = "point"
 
 DEFAULT_ICON = "mdi:alert"
 DEFAULT_NAME = "WX Watcher"
-DEFAULT_INTERVAL = 1
-DEFAULT_TIMEOUT = 120
+DEFAULT_INTERVAL = 60
+DEFAULT_TIMEOUT = 60
+
+MIN_INTERVAL = 15
+MAX_INTERVAL = 300
+INTERVAL_STEP = 15
+
+MIN_TIMEOUT = 5
+MAX_TIMEOUT = 120
+TIMEOUT_STEP = 5
 
 EVENT_ATTR_CONFIG_ENTRY_ID = "config_entry_id"
 EVENT_ATTR_SOURCES = "sources"
 
-VERSION = "8.0.0"
+VERSION = "8.1.1"
 ISSUE_URL = "https://github.com/nalabelle/wx_watcher"
 DOMAIN = "wx_watcher"
 PLATFORM = "sensor"
 ATTRIBUTION = "Data provided by Weather.gov"
 COORDINATOR = "coordinator"
-PLATFORMS = [Platform.SENSOR]
-CONFIG_VERSION = 4
+PLATFORMS = [Platform.SENSOR, Platform.NUMBER]
+CONFIG_VERSION = 5
 
 EVENT_ALERT_CREATED = f"{DOMAIN}_alert_created"
 EVENT_ALERT_UPDATED = f"{DOMAIN}_alert_updated"

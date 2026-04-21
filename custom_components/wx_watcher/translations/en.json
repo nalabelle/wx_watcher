@@ -1,15 +1,6 @@
 {
   "config": {
     "step": {
-      "user": {
-        "title": "WX Watcher",
-        "description": "Set up WX Watcher. You can monitor one or more locations (home, work, phone, etc.), each with its own mode.",
-        "data": {
-          "name": "Name",
-          "interval": "Update interval (minutes)",
-          "timeout": "Update timeout (seconds)"
-        }
-      },
       "locations": {
         "title": "Locations",
         "description": "Current locations: {location_list}\n\nAdd, edit, or remove a location, or finish setup.",

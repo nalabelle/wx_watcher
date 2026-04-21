@@ -3,8 +3,8 @@
 # Derived in part from nws_alerts by finity69x2
 # (https://github.com/finity69x2/nws_alerts).
 # DataUpdateCoordinator structure, _async_update_data pattern with
-# async_timeout + UpdateFailed, _get_tracker_gps originate from the
-# upstream coordinator. See NOTICE for details.
+# async_timeout + UpdateFailed originate from the upstream coordinator.
+# See NOTICE for details.
 # As upstream-derived code is rewritten or removed, this comment should
 # be updated or removed accordingly.
 
@@ -31,14 +31,30 @@ from .const import (
     CONF_LOCATION_ZONE,
     CONF_LOCATIONS,
     CONF_TIMEOUT,
+    DEFAULT_INTERVAL,
+    DEFAULT_NAME,
+    DEFAULT_TIMEOUT,
     LOCATION_MODE_POINT,
     LOCATION_MODE_ZONE,
     LOCATION_TYPE_STATIC,
     LOCATION_TYPE_TRACKED,
+    MAX_TIMEOUT,
+    MIN_TIMEOUT,
 )
 from .events import async_fire_alert_events, async_fire_stale_data_event
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _parse_timestamp(ts: str) -> datetime | None:
+    """Parse ISO 8601 timestamp, return None if invalid."""
+    if not ts:
+        return None
+    try:
+        return datetime.fromisoformat(ts)
+    except ValueError:
+        _LOGGER.warning("Invalid timestamp from NWS API: %s", ts)
+        return None
 
 
 def _parse_gps_str(gps_str: str) -> tuple[float, float]:
@@ -90,8 +106,8 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
         user_agent: str,
     ) -> None:
         """Initialize the coordinator."""
-        self._interval = timedelta(minutes=config.data.get(CONF_INTERVAL, 1))
-        self._timeout = config.data.get(CONF_TIMEOUT, 120)
+        self._interval = timedelta(seconds=config.data.get(CONF_INTERVAL, DEFAULT_INTERVAL))
+        self._timeout = config.data.get(CONF_TIMEOUT, DEFAULT_TIMEOUT)
         self._config = config
         self._session = session
         self._user_agent = user_agent
@@ -100,6 +116,8 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
         self._previous_merged: dict[str, dict] = {}
         self._previous_per_location: dict[str, set[str]] = {}
         self._last_successful_update: str | None = None
+        self._nws_updated: str | None = None
+        self._tracker_gps_warned: dict[str, datetime] = {}
 
         _LOGGER.debug("Data will be updated every %s", self._interval)
 
@@ -107,7 +125,7 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             config_entry=config,
-            name=config.data.get("name", "NWS Alerts"),
+            name=DEFAULT_NAME,
             update_interval=self._interval,
         )
 
@@ -115,6 +133,21 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
     def entry_id(self) -> str:
         """Return the config entry ID."""
         return self._entry_id
+
+    @property
+    def timeout(self) -> int:
+        """Return the current timeout in seconds."""
+        return self._timeout
+
+    @timeout.setter
+    def timeout(self, value: int) -> None:
+        """Set the timeout in seconds."""
+        self._timeout = max(MIN_TIMEOUT, min(MAX_TIMEOUT, value))
+
+    @property
+    def nws_updated(self) -> str | None:
+        """Return the NWS API 'updated' timestamp from last fetch."""
+        return self._nws_updated
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from all locations and merge."""
@@ -146,12 +179,21 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
             all_zone_ids.update(loc_zones)
 
         zone_alerts_raw: list[dict[str, Any]] = []
+        nws_updated: str | None = None
         if all_zone_ids:
-            zone_alerts_raw = await fetch_zone_alerts(
+            zone_alerts_raw, zone_updated = await fetch_zone_alerts(
                 self._session, self._user_agent, sorted(all_zone_ids)
             )
+            if zone_updated:
+                nws_updated = zone_updated
 
-        point_results = await self._fetch_point_alerts(point_tasks)
+        point_results, point_updated = await self._fetch_point_alerts(point_tasks)
+        point_dt = _parse_timestamp(point_updated)
+        zone_dt = _parse_timestamp(nws_updated or "")
+        if point_dt and (zone_dt is None or point_dt > zone_dt):
+            nws_updated = point_updated
+
+        self._nws_updated = nws_updated
 
         merged = self._merge_zone_alerts(zone_alerts_raw, location_zones)
         self._merge_point_alerts(point_results, merged)
@@ -225,10 +267,13 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _fetch_point_alerts(
         self, point_tasks: list[tuple[dict, tuple[float, float]]]
-    ) -> dict[str, list[dict[str, Any]]]:
-        """Fetch point alerts for all point-mode locations concurrently."""
+    ) -> tuple[dict[str, list[dict[str, Any]]], str]:
+        """Fetch point alerts for all point-mode locations concurrently.
+
+        Returns (results dict, latest updated timestamp).
+        """
         if not point_tasks:
-            return {}
+            return {}, ""
 
         coros = [
             fetch_point_alerts(self._session, self._user_agent, coords[0], coords[1])
@@ -236,6 +281,8 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
         ]
         raw_results = await asyncio.gather(*coros, return_exceptions=True)
         results: dict[str, list[dict[str, Any]]] = {}
+        latest_updated = ""
+        latest_dt: datetime | None = None
         for i, result in enumerate(raw_results):
             loc = point_tasks[i][0]
             eid = _entity_id(loc)
@@ -246,8 +293,13 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
                     result,
                 )
             else:
-                results[eid] = cast(list[dict[str, Any]], result)
-        return results
+                features, updated = cast(tuple[list[dict[str, Any]], str], result)
+                results[eid] = features
+                updated_dt = _parse_timestamp(updated)
+                if updated_dt and (latest_dt is None or updated_dt > latest_dt):
+                    latest_updated = updated
+                    latest_dt = updated_dt
+        return results, latest_updated
 
     def _merge_zone_alerts(
         self,
@@ -304,8 +356,15 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
             return None
         attrs = entity.attributes
         if "latitude" in attrs and "longitude" in attrs:
+            self._tracker_gps_warned.pop(tracker_entity_id, None)
             return f"{attrs['latitude']},{attrs['longitude']}"
-        _LOGGER.warning("Tracker %s missing latitude/longitude attributes", tracker_entity_id)
+        now = datetime.now(tz=UTC)
+        last_warned = self._tracker_gps_warned.get(tracker_entity_id)
+        if last_warned is None or (now - last_warned) > timedelta(hours=24):
+            _LOGGER.warning("Tracker %s missing latitude/longitude attributes", tracker_entity_id)
+            self._tracker_gps_warned[tracker_entity_id] = now
+        else:
+            _LOGGER.debug("Tracker %s missing latitude/longitude attributes", tracker_entity_id)
         return None
 
     def _display_name(self, entity_id: str) -> str:

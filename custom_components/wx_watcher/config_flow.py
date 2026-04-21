@@ -9,7 +9,6 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult
-from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.instance_id import async_get as async_get_instance_id
@@ -68,7 +67,11 @@ def _location_display(hass: HomeAssistant, loc: dict[str, Any]) -> str:
     entity_id = loc.get(CONF_LOCATION_HA_ZONE) or loc.get(CONF_LOCATION_TRACKER, "")
     state = hass.states.get(entity_id)
     name = state.name if state else entity_id
-    return f"{name} ({loc[CONF_LOCATION_TYPE]}, {loc[CONF_LOCATION_MODE]})"
+    display = f"{name} ({loc[CONF_LOCATION_TYPE]}, {loc[CONF_LOCATION_MODE]}"
+    zone = loc.get(CONF_LOCATION_ZONE, "")
+    if zone:
+        display += f", {zone}"
+    return display + ")"
 
 
 def _location_list_str(hass: HomeAssistant, locations: list[dict[str, Any]]) -> str:
@@ -88,7 +91,11 @@ def _location_select_options(
         state = hass.states.get(entity_id)
         name = state.name if state else entity_id
         loc_type = "static" if loc[CONF_LOCATION_TYPE] == LOCATION_TYPE_STATIC else "tracked"
-        label = f"{name} ({loc_type}, {loc[CONF_LOCATION_MODE]})"
+        label = f"{name} ({loc_type}, {loc[CONF_LOCATION_MODE]}"
+        zone = loc.get(CONF_LOCATION_ZONE, "")
+        if zone:
+            label += f", {zone}"
+        label += ")"
         options.append(SelectOptionDict(value=str(i), label=label))
     return options
 
@@ -234,23 +241,10 @@ class WXWatcherFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle the initial user step."""
-        if user_input is not None:
-            self._data[CONF_NAME] = user_input[CONF_NAME]
-            self._data[CONF_INTERVAL] = user_input.get(CONF_INTERVAL, DEFAULT_INTERVAL)
-            self._data[CONF_TIMEOUT] = user_input.get(CONF_TIMEOUT, DEFAULT_TIMEOUT)
-            return await self.async_step_locations()
-
-        return self.async_show_form(
-            step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_NAME, default=DEFAULT_NAME): str,
-                    vol.Optional(CONF_INTERVAL, default=DEFAULT_INTERVAL): int,
-                    vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): int,
-                }
-            ),
-            errors=self._errors,
-        )
+        self._data["name"] = DEFAULT_NAME
+        self._data[CONF_INTERVAL] = DEFAULT_INTERVAL
+        self._data[CONF_TIMEOUT] = DEFAULT_TIMEOUT
+        return await self.async_step_locations()
 
     async def async_step_locations(
         self, user_input: dict[str, Any] | None = None
@@ -448,7 +442,7 @@ class WXWatcherFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     def _create_entry(self) -> ConfigFlowResult:
         """Create the config entry from collected data."""
         self._data[CONF_LOCATIONS] = self._locations
-        return self.async_create_entry(title=self._data[CONF_NAME], data=self._data)
+        return self.async_create_entry(title=DEFAULT_NAME, data=self._data)
 
     @staticmethod
     @callback

@@ -16,6 +16,7 @@ from homeassistant.helpers.instance_id import async_get as async_get_instance_id
 
 from .const import COORDINATOR, DOMAIN, ISSUE_URL, PLATFORMS, USER_AGENT, VERSION
 from .coordinator import AlertsDataUpdateCoordinator
+from .migration import async_migrate_entry as async_migrate_entry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,13 +41,14 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         user_agent=user_agent,
     )
 
-    await coordinator.async_refresh()
-
     hass.data[DOMAIN][config_entry.entry_id] = {
         COORDINATOR: coordinator,
     }
 
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
+
+    await coordinator.async_refresh()
+
     return True
 
 

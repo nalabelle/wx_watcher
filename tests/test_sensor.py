@@ -17,7 +17,7 @@ async def test_sensor(hass, mock_api):
         domain=DOMAIN,
         title="WX Watcher",
         data=CONFIG_DATA,
-        version=4,
+        version=5,
     )
 
     entry.add_to_hass(hass)
@@ -40,6 +40,8 @@ async def test_sensor(hass, mock_api):
     assert loc_info[0]["name"] == "Home"
     assert loc_info[0]["type"] == "static"
     assert loc_info[0]["mode"] == "zone"
+    assert loc_info[0]["zone"] == "AZZ540,AZC013"
+    assert loc_info[0]["gps"] == "33.25,-112.30"
 
     entity_registry = er.async_get(hass)
     assert entity_registry.async_get(alerts_entity_id)

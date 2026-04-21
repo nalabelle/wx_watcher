@@ -13,12 +13,13 @@ from typing import Final
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_ATTRIBUTION, CONF_NAME
+from homeassistant.const import ATTR_ATTRIBUTION
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ATTRIBUTION, CONF_LOCATIONS, COORDINATOR, DOMAIN
+from .const import ATTRIBUTION, CONF_LOCATIONS, COORDINATOR, DEFAULT_NAME, DOMAIN
+from .coordinator import AlertsDataUpdateCoordinator
 
 SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
     "state": SensorEntityDescription(key="state", name="Alerts", icon="mdi:alert"),
@@ -42,6 +43,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
 class WXWatcherSensor(CoordinatorEntity):
     """Representation of a Sensor."""
 
+    coordinator: AlertsDataUpdateCoordinator
+
     def __init__(
         self,
         hass: HomeAssistant,
@@ -55,7 +58,7 @@ class WXWatcherSensor(CoordinatorEntity):
         self._hass = hass
 
         self._attr_icon = sensor_description.icon
-        self._attr_name = f"{entry.data.get(CONF_NAME, DOMAIN)} {sensor_description.name}"
+        self._attr_name = f"{DEFAULT_NAME} {sensor_description.name}"
         self._attr_device_class = sensor_description.device_class
         self._attr_unique_id = f"{self._attr_name}_{entry.entry_id}"
 
@@ -76,6 +79,8 @@ class WXWatcherSensor(CoordinatorEntity):
             return attrs
         if "alerts" in self.coordinator.data and self._key == "state":
             attrs["Alerts"] = self.coordinator.data["alerts"]
+            if self.coordinator.nws_updated:
+                attrs["nws_updated"] = self.coordinator.nws_updated
 
         locations = self._config.data.get(CONF_LOCATIONS, [])
         if locations:
@@ -89,6 +94,8 @@ class WXWatcherSensor(CoordinatorEntity):
                         "name": state.name if state else entity_id,
                         "type": loc.get("type", ""),
                         "mode": loc.get("mode", ""),
+                        "zone": loc.get("zone", ""),
+                        "gps": loc.get("gps", ""),
                     }
                 )
 
@@ -102,5 +109,5 @@ class WXWatcherSensor(CoordinatorEntity):
             entry_type=DeviceEntryType.SERVICE,
             identifiers={(DOMAIN, self._config.entry_id)},
             manufacturer="NWS",
-            name=self._config.data.get(CONF_NAME, "WX Watcher"),
+            name=DEFAULT_NAME,
         )
