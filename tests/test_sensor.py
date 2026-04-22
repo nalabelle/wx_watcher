@@ -32,16 +32,6 @@ async def test_sensor(hass, mock_api):
     assert state
     assert state.state == "2"
     assert "Alerts" in state.attributes
-    assert "locations" in state.attributes
-
-    loc_info = state.attributes["locations"]
-    assert len(loc_info) == 1
-    assert loc_info[0]["entity"] == "zone.home"
-    assert loc_info[0]["name"] == "Home"
-    assert loc_info[0]["type"] == "static"
-    assert loc_info[0]["mode"] == "zone"
-    assert loc_info[0]["zone"] == "AZZ540,AZC013"
-    assert loc_info[0]["gps"] == "33.25,-112.30"
 
     entity_registry = er.async_get(hass)
     assert entity_registry.async_get(alerts_entity_id)

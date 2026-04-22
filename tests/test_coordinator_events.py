@@ -10,7 +10,7 @@ from custom_components.wx_watcher.const import (
     DOMAIN,
     EVENT_ALERT_CLEARED,
     EVENT_ALERT_CREATED,
-    EVENT_ALERT_STALE_DATA,
+    EVENT_ALERT_FETCH_RESULT,
     EVENT_ALERT_UPDATED,
 )
 from tests.conftest import ZONE_URL
@@ -242,8 +242,8 @@ class TestAlertCleared:
 class TestApiFailure:
     """Tests for API failure handling."""
 
-    async def test_api_failure_fires_stale_data(self, hass, mock_aioclient):
-        """API failure should fire stale_data event, not alert events."""
+    async def test_api_failure_fires_fetch_result(self, hass, mock_aioclient):
+        """API failure should fire fetch_result event with http_error status."""
         for _ in range(2):
             mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api.json"))
         mock_aioclient.get(ZONE_URL, status=503)
@@ -256,7 +256,7 @@ class TestApiFailure:
         hass.bus.async_listen(EVENT_ALERT_CREATED, listener)
         hass.bus.async_listen(EVENT_ALERT_UPDATED, listener)
         hass.bus.async_listen(EVENT_ALERT_CLEARED, listener)
-        hass.bus.async_listen(EVENT_ALERT_STALE_DATA, listener)
+        hass.bus.async_listen(EVENT_ALERT_FETCH_RESULT, listener)
 
         entry = await _setup_entry(hass, mock_aioclient, CONFIG_DATA)
         assert len([e for e in events if e.event_type == EVENT_ALERT_CREATED]) == 2
@@ -267,16 +267,18 @@ class TestApiFailure:
         await coordinator.async_refresh()
         await hass.async_block_till_done()
 
-        stale_events = [e for e in events if e.event_type == EVENT_ALERT_STALE_DATA]
+        fetch_events = [e for e in events if e.event_type == EVENT_ALERT_FETCH_RESULT]
         alert_events = [
             e
             for e in events
             if e.event_type in (EVENT_ALERT_CREATED, EVENT_ALERT_UPDATED, EVENT_ALERT_CLEARED)
         ]
 
-        assert len(stale_events) == 1
+        assert len(fetch_events) == 1
         assert len(alert_events) == 0
-        assert stale_events[0].data["last_successful"] is not None
+        assert fetch_events[0].data["status"] == "http_error"
+        assert fetch_events[0].data["http_status"] == 503
+        assert fetch_events[0].data["last_successful"] is not None
 
 
 class TestPointMode:

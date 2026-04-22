@@ -20,7 +20,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import fetch_point_alerts, fetch_zone_alerts, parse_alert, resolve_zones
+from .api import NWSApiError, fetch_point_alerts, fetch_zone_alerts, parse_alert, resolve_zones
 from .const import (
     CONF_INTERVAL,
     CONF_LOCATION_GPS,
@@ -34,6 +34,10 @@ from .const import (
     DEFAULT_INTERVAL,
     DEFAULT_NAME,
     DEFAULT_TIMEOUT,
+    FETCH_ERROR,
+    FETCH_HTTP_ERROR,
+    FETCH_OK,
+    FETCH_TIMEOUT,
     LOCATION_MODE_POINT,
     LOCATION_MODE_ZONE,
     LOCATION_TYPE_STATIC,
@@ -41,7 +45,7 @@ from .const import (
     MAX_TIMEOUT,
     MIN_TIMEOUT,
 )
-from .events import async_fire_alert_events, async_fire_stale_data_event
+from .events import async_fire_alert_events, async_fire_fetch_result_event
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -127,6 +131,7 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
             config_entry=config,
             name=DEFAULT_NAME,
             update_interval=self._interval,
+            always_update=False,
         )
 
     @property
@@ -154,14 +159,37 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
         async with async_timeout(self._timeout):
             try:
                 data = await self._fetch_all_locations()
+            except NWSApiError as error:
+                await async_fire_fetch_result_event(
+                    self.hass,
+                    FETCH_HTTP_ERROR,
+                    last_successful=self._last_successful_update,
+                    http_status=error.status,
+                )
+                raise UpdateFailed(error) from error
+            except TimeoutError as error:
+                await async_fire_fetch_result_event(
+                    self.hass,
+                    FETCH_TIMEOUT,
+                    last_successful=self._last_successful_update,
+                )
+                raise UpdateFailed(error) from error
             except Exception as error:
-                await async_fire_stale_data_event(self.hass, self._last_successful_update)
+                await async_fire_fetch_result_event(
+                    self.hass,
+                    FETCH_ERROR,
+                    last_successful=self._last_successful_update,
+                )
                 raise UpdateFailed(error) from error
 
+            await async_fire_fetch_result_event(
+                self.hass,
+                FETCH_OK,
+                last_successful=self._last_successful_update,
+            )
             await async_fire_alert_events(self.hass, self._entry_id, data, self._previous_merged)
             self._previous_merged = {alert["ID"]: alert for alert in data["alerts"]}
             self._last_successful_update = datetime.now(tz=UTC).isoformat()
-            _LOGGER.debug("Data: %s", data)
             return data
 
     async def _fetch_all_locations(self) -> dict[str, Any]:
@@ -199,11 +227,7 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
         self._merge_point_alerts(point_results, merged)
 
         alerts = sorted(merged.values(), key=lambda x: x["ID"])
-        return {
-            "state": len(alerts),
-            "alerts": alerts,
-            "last_updated": datetime.now(tz=UTC).isoformat(),
-        }
+        return {"state": len(alerts), "alerts": alerts}
 
     async def _build_fetch_tasks(
         self, static_zone_entity_ids: set[str]

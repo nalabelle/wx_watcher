@@ -26,7 +26,7 @@ async def test_setup_entry(hass, mock_api, caplog):
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
-        assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 2
+        assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 1
         entries = hass.config_entries.async_entries(DOMAIN)
         assert len(entries) == 1
 
@@ -44,7 +44,7 @@ async def test_unload_entry(hass, mock_api):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 2
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 1
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 

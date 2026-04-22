@@ -11,8 +11,9 @@ A Home Assistant custom integration for monitoring weather alerts from the US Na
 - **Tracker skip optimization** — tracked devices inside a static location's HA zone are skipped (zone query is a superset)
 - **Deduplicated alerts** — same alert observed from multiple locations fires one event, with a `sources` list showing which locations detected it
 - **Combined zone queries** — all zone-mode locations are queried in a single API call, minimizing NWS API usage
-- **Event-driven architecture** — fires `wx_watcher_alert_created`, `wx_watcher_alert_updated`, `wx_watcher_alert_cleared`, and `wx_watcher_alert_stale_data` events for precise automation triggers
-- **Dashboard sensor** — `sensor.wx_watcher_alerts` shows current alert count with full details in attributes; `sensor.wx_watcher_last_updated` shows the last successful update time
+- **Event-driven architecture** — fires `wx_watcher_alert_created`, `wx_watcher_alert_updated`, `wx_watcher_alert_cleared`, and `wx_watcher_alert_fetch_result` events for precise automation triggers
+- **Recorder-efficient** — sensor state only updates when alert data actually changes, minimizing database writes
+- **Dashboard sensor** — `sensor.wx_watcher_alerts` shows current alert count with full alert details and `nws_updated` timestamp in attributes
 
 ## Installation
 
@@ -56,16 +57,16 @@ Go to **Settings → Devices & Services → Add Integration** and search for "WX
 
 Events are fired for each unique alert (deduplicated across locations):
 
-| Event                         | When                          |
-| ----------------------------- | ----------------------------- |
-| `wx_watcher_alert_created`    | New alert appears             |
-| `wx_watcher_alert_updated`    | Existing alert's data changes |
-| `wx_watcher_alert_cleared`    | Alert is no longer active     |
-| `wx_watcher_alert_stale_data` | NWS API fetch failed          |
+| Event                           | When                                   |
+| ------------------------------- | -------------------------------------- |
+| `wx_watcher_alert_created`      | New alert appears                      |
+| `wx_watcher_alert_updated`      | Existing alert's data changes          |
+| `wx_watcher_alert_cleared`      | Alert is no longer active              |
+| `wx_watcher_alert_fetch_result` | Every fetch cycle (success or failure) |
 
-### Event Data
+### Alert Event Data
 
-Each event carries these fields:
+Each alert event (`created`, `updated`, `cleared`) carries these fields:
 
 | Field                                           | Description                                                                                                                                                     |
 | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -90,6 +91,16 @@ Each event carries these fields:
 | `SenderName`                                    | Issuing NWS office                                                                                                                                              |
 | `config_entry_id`                               | Config entry that fired the event                                                                                                                               |
 | `sources`                                       | List of source dicts. Static: `{"ha_zone": "zone.home", "mode": "zone"}`. Tracked: `{"tracker": "device_tracker.phone", "mode": "point"}`.                      |
+
+### Fetch Result Event Data
+
+The `wx_watcher_alert_fetch_result` event fires on every fetch cycle (success or failure):
+
+| Field             | Description                                                      |
+| ----------------- | ---------------------------------------------------------------- |
+| `status`          | `"ok"`, `"http_error"`, `"timeout"`, or `"error"`                |
+| `http_status`     | HTTP status code (e.g., 503, 500). Only present on `http_error`. |
+| `last_successful` | ISO 8601 timestamp of last successful fetch, or `null`           |
 
 ### Automation Example
 
@@ -147,10 +158,30 @@ To update, re-import the blueprint from the same URL.
 
 ## Sensors
 
-| Entity                           | State                            | Attributes                                                                           |
-| -------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------ |
-| `sensor.wx_watcher_alerts`       | Number of active alerts          | `Alerts` (full list with sources), `locations` (configured locations), `attribution` |
-| `sensor.wx_watcher_last_updated` | Last successful update timestamp | `attribution`                                                                        |
+| Entity                     | State                   | Attributes                                                      |
+| -------------------------- | ----------------------- | --------------------------------------------------------------- |
+| `sensor.wx_watcher_alerts` | Number of active alerts | `Alerts` (full list with sources), `nws_updated`, `attribution` |
+
+## Breaking Changes from v8.1
+
+- **`sensor.wx_watcher_last_updated` removed** — the `nws_updated` attribute on `sensor.wx_watcher_alerts` shows when NWS alert data last changed. For "is the integration alive?", use entity availability. For per-fetch status, subscribe to the `wx_watcher_alert_fetch_result` event.
+- **`wx_watcher_alert_stale_data` event replaced by `wx_watcher_alert_fetch_result`** — fires on every fetch cycle (success and failure) with structured status data. Migration:
+
+  ```yaml
+  # Old (v8.1):
+  trigger:
+    - platform: event
+      event_type: wx_watcher_alert_stale_data
+
+  # New (v8.2):
+  trigger:
+    - platform: event
+      event_type: wx_watcher_alert_fetch_result
+      event_data:
+        status: timeout  # or http_error, error
+  ```
+
+- **`locations` attribute removed** from `sensor.wx_watcher_alerts` — location config is visible in the integration's config entry options.
 
 ## Breaking Changes from v7
 
