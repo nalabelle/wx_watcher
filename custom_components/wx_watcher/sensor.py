@@ -9,26 +9,20 @@
 # be updated or removed accordingly.
 
 import logging
-from typing import Final
+from typing import Any, Final
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription
+from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ATTRIBUTION
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ATTRIBUTION, CONF_LOCATIONS, COORDINATOR, DEFAULT_NAME, DOMAIN
+from .const import ATTRIBUTION, COORDINATOR, DEFAULT_NAME, DOMAIN
 from .coordinator import AlertsDataUpdateCoordinator
 
 SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
     "state": SensorEntityDescription(key="state", name="Alerts", icon="mdi:alert"),
-    "last_updated": SensorEntityDescription(
-        name="Last Updated",
-        key="last_updated",
-        icon="mdi:update",
-        device_class=SensorDeviceClass.TIMESTAMP,
-    ),
 }
 
 _LOGGER = logging.getLogger(__name__)
@@ -74,30 +68,13 @@ class WXWatcherSensor(CoordinatorEntity):
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""
-        attrs = {}
+        attrs: dict[str, Any] = {}
         if self.coordinator.data is None:
             return attrs
         if "alerts" in self.coordinator.data and self._key == "state":
             attrs["Alerts"] = self.coordinator.data["alerts"]
             if self.coordinator.nws_updated:
                 attrs["nws_updated"] = self.coordinator.nws_updated
-
-        locations = self._config.data.get(CONF_LOCATIONS, [])
-        if locations:
-            attrs["locations"] = []
-            for loc in locations:
-                entity_id = loc.get("ha_zone") or loc.get("tracker", "")
-                state = self._hass.states.get(entity_id)
-                attrs["locations"].append(
-                    {
-                        "entity": entity_id,
-                        "name": state.name if state else entity_id,
-                        "type": loc.get("type", ""),
-                        "mode": loc.get("mode", ""),
-                        "zone": loc.get("zone", ""),
-                        "gps": loc.get("gps", ""),
-                    }
-                )
 
         attrs[ATTR_ATTRIBUTION] = ATTRIBUTION
         return attrs

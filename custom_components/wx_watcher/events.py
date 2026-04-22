@@ -1,13 +1,14 @@
 """Event handling for WX Watcher."""
 
 import logging
+from typing import Any
 
 from homeassistant.core import HomeAssistant
 
 from .const import (
     EVENT_ALERT_CLEARED,
     EVENT_ALERT_CREATED,
-    EVENT_ALERT_STALE_DATA,
+    EVENT_ALERT_FETCH_RESULT,
     EVENT_ALERT_UPDATED,
     EVENT_ATTR_CONFIG_ENTRY_ID,
 )
@@ -76,16 +77,17 @@ def _strip_internal(alert: dict) -> dict:
     return {k: v for k, v in alert.items() if not k.startswith("_")}
 
 
-async def async_fire_stale_data_event(
+async def async_fire_fetch_result_event(
     hass: HomeAssistant,
-    last_successful_update: str | None,
+    status: str,
+    last_successful: str | None,
+    http_status: int | None = None,
 ) -> None:
-    """Fire wx_watcher_alert_stale_data event when an API fetch fails."""
-    _LOGGER.warning(
-        "WX Watcher API fetch failed. Last successful update: %s",
-        last_successful_update,
-    )
-    hass.bus.async_fire(
-        EVENT_ALERT_STALE_DATA,
-        {"last_successful": last_successful_update},
-    )
+    """Fire wx_watcher_alert_fetch_result event with fetch status."""
+    event_data: dict[str, Any] = {
+        "status": status,
+        "last_successful": last_successful,
+    }
+    if http_status is not None:
+        event_data["http_status"] = http_status
+    hass.bus.async_fire(EVENT_ALERT_FETCH_RESULT, event_data)

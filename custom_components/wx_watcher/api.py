@@ -23,6 +23,11 @@ _LOGGER = logging.getLogger(__name__)
 class NWSApiError(Exception):
     """Exception raised when the NWS API returns a non-200 status."""
 
+    def __init__(self, message: str, status: int | None = None) -> None:
+        """Initialize NWSApiError."""
+        super().__init__(message)
+        self.status = status
+
 
 async def resolve_zones(
     session: aiohttp.ClientSession,
@@ -119,7 +124,7 @@ async def _fetch_alerts(
             return features, updated
         msg = f"Problem fetching alerts for {desc}: ({r.status}) {r.reason}"
         _LOGGER.warning(msg)
-        raise NWSApiError(msg)
+        raise NWSApiError(msg, status=r.status)
 
 
 def parse_alert(raw_alert: dict[str, Any]) -> dict[str, Any] | None:

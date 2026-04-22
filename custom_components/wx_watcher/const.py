@@ -46,7 +46,7 @@ TIMEOUT_STEP = 5
 EVENT_ATTR_CONFIG_ENTRY_ID = "config_entry_id"
 EVENT_ATTR_SOURCES = "sources"
 
-VERSION = "8.1.1"
+VERSION = "8.2.0"
 ISSUE_URL = "https://github.com/nalabelle/wx_watcher"
 DOMAIN = "wx_watcher"
 PLATFORM = "sensor"
@@ -58,4 +58,9 @@ CONFIG_VERSION = 5
 EVENT_ALERT_CREATED = f"{DOMAIN}_alert_created"
 EVENT_ALERT_UPDATED = f"{DOMAIN}_alert_updated"
 EVENT_ALERT_CLEARED = f"{DOMAIN}_alert_cleared"
-EVENT_ALERT_STALE_DATA = f"{DOMAIN}_alert_stale_data"
+EVENT_ALERT_FETCH_RESULT = f"{DOMAIN}_alert_fetch_result"
+
+FETCH_OK = "ok"
+FETCH_HTTP_ERROR = "http_error"
+FETCH_TIMEOUT = "timeout"
+FETCH_ERROR = "error"
