@@ -112,6 +112,7 @@ actions:
     then:
       - action: ticker.notify
         data:
+          title: ""
           message: clear_notification
           data:
             tag: wx_{{ trigger.event.data.ID }}
