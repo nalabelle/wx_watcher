@@ -5,6 +5,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.wx_watcher.const import DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
+from homeassistant.core import CoreState
 from homeassistant.helpers import entity_registry as er
 from tests.const import CONFIG_DATA
 
@@ -13,6 +14,8 @@ pytestmark = pytest.mark.asyncio
 
 async def test_sensor(hass, mock_api):
     """Test sensors."""
+    hass.set_state(CoreState.running)
+
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="WX Watcher",
