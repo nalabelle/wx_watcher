@@ -20,7 +20,7 @@ from custom_components.wx_watcher.vtec.codes import (
     VTEC_SIGNIFICANCE_CODES,
     VTEC_STATUS_CODES,
     VTEC_TIMESTAMP_FORMAT,
-    VTEC_TIMESTAMP_UNDEFINED,
+    VTEC_TIMESTAMP_UNDEFINED_PREFIX,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -145,7 +145,7 @@ def _validate_etn(vtec_string: str, etn_raw: str) -> int:
 
 
 def _validate_timestamp(vtec_string: str, ts: str, label: str) -> None:
-    if ts == VTEC_TIMESTAMP_UNDEFINED:
+    if ts.startswith(VTEC_TIMESTAMP_UNDEFINED_PREFIX):
         return
     try:
         dt = datetime.strptime(ts, VTEC_TIMESTAMP_FORMAT)
@@ -153,7 +153,7 @@ def _validate_timestamp(vtec_string: str, ts: str, label: str) -> None:
         raise VTECParseError(
             f"Invalid VTEC {label} timestamp {ts!r} in {vtec_string!r}; "
             f"expected format {VTEC_TIMESTAMP_FORMAT!r} or "
-            f"sentinel {VTEC_TIMESTAMP_UNDEFINED!r}"
+            f"undefined sentinel starting with {VTEC_TIMESTAMP_UNDEFINED_PREFIX!r}"
         ) from err
     dt = dt.replace(tzinfo=UTC)
     if dt.year < 1971:

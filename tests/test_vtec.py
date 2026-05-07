@@ -100,6 +100,31 @@ class TestParseValid:
         assert tokens.begints == "00000000T0000Z"
         assert tokens.endts == "00000000T0000Z"
 
+    def test_parse_short_undefined_begin_timestamp(self):
+        """Short-form undefined begin timestamp (6-digit) should be accepted."""
+        vtec = _build_vtec(begints="000000T0000Z")
+        tokens = parse_vtec(vtec)
+        assert tokens.begints == "000000T0000Z"
+
+    def test_parse_short_undefined_end_timestamp(self):
+        """Short-form undefined end timestamp (6-digit) should be accepted."""
+        vtec = _build_vtec(endts="000000T0000Z")
+        tokens = parse_vtec(vtec)
+        assert tokens.endts == "000000T0000Z"
+
+    def test_parse_real_world_exp_with_undefined_begin(self):
+        """Real-world EXP alert with short undefined begin timestamp."""
+        vtec = "/O.EXP.KDTX.FR.Y.0004.000000T0000Z-260507T1200Z/"
+        tokens = parse_vtec(vtec)
+        assert tokens.status == "O"
+        assert tokens.action == "EXP"
+        assert tokens.office == "KDTX"
+        assert tokens.phenomena == "FR"
+        assert tokens.significance == "Y"
+        assert tokens.etn == 4
+        assert tokens.begints == "000000T0000Z"
+        assert tokens.endts == "260507T1200Z"
+
 
 class TestParseInvalid:
     """Tests for VTECParseError on invalid VTEC strings."""
