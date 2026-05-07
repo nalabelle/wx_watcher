@@ -13,6 +13,7 @@ from custom_components.wx_watcher.const import (
     EVENT_ALERT_FETCH_RESULT,
     EVENT_ALERT_UPDATED,
 )
+from homeassistant.core import CoreState
 from tests.conftest import ZONE_URL
 from tests.const import CONFIG_DATA, CONFIG_DATA_POINT_ONLY, CONFIG_DATA_TRACKER_IN_STATIC_ZONE
 
@@ -61,6 +62,7 @@ async def _setup_entry(hass, mock_aioclient, config_data, entry_title="WX Watche
         version=4,
     )
     entry.add_to_hass(hass)
+    hass.set_state(CoreState.running)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     return entry
