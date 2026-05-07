@@ -123,7 +123,6 @@ async def _fetch_alerts(
             _LOGGER.debug("Got %d alerts for %s", len(features), desc)
             return features, updated
         msg = f"Problem fetching alerts for {desc}: ({r.status}) {r.reason}"
-        _LOGGER.warning(msg)
         raise NWSApiError(msg, status=r.status)
 
 
