@@ -554,6 +554,9 @@ ignore = [
   "PLE0605",
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*" = ["SLF001"]
+
 [tool.ruff.lint.flake8-import-conventions.extend-aliases]
 voluptuous = "vol"
 "homeassistant.components.air_quality.PLATFORM_SCHEMA" = "AIR_QUALITY_PLATFORM_SCHEMA"

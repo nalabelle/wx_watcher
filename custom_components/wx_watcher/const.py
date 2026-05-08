@@ -8,6 +8,8 @@
 # As upstream-derived code is rewritten or removed, this comment should
 # be updated or removed accordingly.
 
+from datetime import timedelta
+
 from homeassistant.const import Platform
 
 API_ENDPOINT = "https://api.weather.gov"
@@ -46,7 +48,7 @@ TIMEOUT_STEP = 5
 EVENT_ATTR_CONFIG_ENTRY_ID = "config_entry_id"
 EVENT_ATTR_SOURCES = "sources"
 
-VERSION = "8.3.0"
+VERSION = "8.3.1"
 ISSUE_URL = "https://github.com/nalabelle/wx_watcher"
 DOMAIN = "wx_watcher"
 PLATFORM = "sensor"
@@ -54,6 +56,8 @@ ATTRIBUTION = "Data provided by Weather.gov"
 COORDINATOR = "coordinator"
 PLATFORMS = [Platform.SENSOR, Platform.NUMBER]
 CONFIG_VERSION = 5
+
+TRACKER_STARTUP_GRACE_PERIOD = timedelta(minutes=5)
 
 EVENT_ALERT_CREATED = f"{DOMAIN}_alert_created"
 EVENT_ALERT_UPDATED = f"{DOMAIN}_alert_updated"

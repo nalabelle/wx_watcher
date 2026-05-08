@@ -86,3 +86,18 @@ CONFIG_DATA_TRACKER_IN_STATIC_ZONE = {
         },
     ],
 }
+
+CONFIG_DATA_TRACKER_ONLY = {
+    "name": "WX Watcher",
+    "interval": 60,
+    "timeout": 60,
+    "locations": [
+        {
+            CONF_LOCATION_TYPE: LOCATION_TYPE_TRACKED,
+            CONF_LOCATION_MODE: LOCATION_MODE_POINT,
+            CONF_LOCATION_GPS: "",
+            CONF_LOCATION_ZONE: "",
+            CONF_LOCATION_TRACKER: "device_tracker.phone",
+        },
+    ],
+}

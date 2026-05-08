@@ -44,6 +44,7 @@ from .const import (
     LOCATION_TYPE_TRACKED,
     MAX_TIMEOUT,
     MIN_TIMEOUT,
+    TRACKER_STARTUP_GRACE_PERIOD,
 )
 from .events import async_fire_alert_events, async_fire_fetch_result_event
 
@@ -122,6 +123,8 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
         self._last_successful_update: str | None = None
         self._nws_updated: str | None = None
         self._tracker_gps_warned: dict[str, datetime] = {}
+        self._startup_time: datetime = datetime.now(tz=UTC)
+        self._trackers_seen: set[str] = set()
 
         _LOGGER.debug("Data will be updated every %s", self._interval)
 
@@ -376,10 +379,26 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
         """Return ``lat,lon`` string for a tracker entity, or None."""
         entity = self.hass.states.get(tracker_entity_id)
         if entity is None:
-            _LOGGER.warning("Tracker entity %s not found", tracker_entity_id)
+            now = datetime.now(tz=UTC)
+            if tracker_entity_id in self._trackers_seen:
+                _LOGGER.warning(
+                    "Tracker entity %s previously available but now missing",
+                    tracker_entity_id,
+                )
+            elif (now - self._startup_time) > TRACKER_STARTUP_GRACE_PERIOD:
+                _LOGGER.warning(
+                    "Tracker entity %s not found after startup grace period",
+                    tracker_entity_id,
+                )
+            else:
+                _LOGGER.debug(
+                    "Tracker entity %s not found (startup grace period)",
+                    tracker_entity_id,
+                )
             return None
         attrs = entity.attributes
         if "latitude" in attrs and "longitude" in attrs:
+            self._trackers_seen.add(tracker_entity_id)
             self._tracker_gps_warned.pop(tracker_entity_id, None)
             return f"{attrs['latitude']},{attrs['longitude']}"
         now = datetime.now(tz=UTC)
