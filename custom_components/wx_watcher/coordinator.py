@@ -191,7 +191,11 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
                 last_successful=self._last_successful_update,
             )
             await async_fire_alert_events(self.hass, self._entry_id, data, self._previous_merged)
-            self._previous_merged = {_dedup_key(alert): alert for alert in data["alerts"]}
+            self._previous_merged = {
+                _dedup_key(alert): alert
+                for alert in data["alerts"]
+                if alert.get("VTECAction") not in ("CAN", "EXP")
+            }
             self._last_successful_update = datetime.now(tz=UTC).isoformat()
             return data
 
