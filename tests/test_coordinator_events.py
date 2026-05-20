@@ -317,12 +317,10 @@ class TestVTECDedup:
             mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api.json"))
 
         api_data = json.loads(load_fixture("api.json"))
-        api_data["features"][0][
-            "id"
-        ] = "https://api.weather.gov/alerts/urn:oid:DIFFERENT.URI.SAME.VTEC"
-        api_data["features"][0]["properties"][
-            "id"
-        ] = "urn:oid:DIFFERENT.URI.SAME.VTEC"
+        api_data["features"][0]["id"] = (
+            "https://api.weather.gov/alerts/urn:oid:DIFFERENT.URI.SAME.VTEC"
+        )
+        api_data["features"][0]["properties"]["id"] = "urn:oid:DIFFERENT.URI.SAME.VTEC"
         mock_aioclient.get(ZONE_URL, status=200, body=json.dumps(api_data))
 
         events = []
@@ -561,9 +559,7 @@ class TestVTECDedup:
         assert len(updated) == 0
         assert len(cleared) == 0
 
-    async def test_same_vtec_same_id_different_content_updated(
-        self, hass, mock_aioclient
-    ):
+    async def test_same_vtec_same_id_different_content_updated(self, hass, mock_aioclient):
         """Same VTEC key and same ID but different content should fire UPDATED."""
         api_data = json.loads(load_fixture("api.json"))
         api_data["features"][0]["properties"]["severity"] = "Extreme"
