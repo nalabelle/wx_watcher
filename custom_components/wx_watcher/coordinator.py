@@ -46,7 +46,7 @@ from .const import (
     MIN_TIMEOUT,
     TRACKER_STARTUP_GRACE_PERIOD,
 )
-from .events import async_fire_alert_events, async_fire_fetch_result_event
+from .events import _dedup_key, async_fire_alert_events, async_fire_fetch_result_event
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -191,7 +191,7 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
                 last_successful=self._last_successful_update,
             )
             await async_fire_alert_events(self.hass, self._entry_id, data, self._previous_merged)
-            self._previous_merged = {alert["ID"]: alert for alert in data["alerts"]}
+            self._previous_merged = {_dedup_key(alert): alert for alert in data["alerts"]}
             self._last_successful_update = datetime.now(tz=UTC).isoformat()
             return data
 
