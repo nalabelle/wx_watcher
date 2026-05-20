@@ -198,11 +198,16 @@ def parse_alert(raw_alert: dict[str, Any]) -> dict[str, Any] | None:
                 vtec_list[0],
                 exc_info=True,
             )
+            parsed["_VTECKey"] = None
         else:
             parsed["VTECAction"] = tokens.action
             parsed["Significance"] = tokens.significance
+            parsed["_VTECKey"] = (
+                f"{tokens.office}/{tokens.phenomena}/{tokens.significance}/{tokens.etn:04d}"
+            )
     else:
         parsed["VTECAction"] = None
+        parsed["_VTECKey"] = None
 
     return parsed
 

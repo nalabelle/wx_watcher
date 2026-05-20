@@ -308,6 +308,347 @@ class TestPointMode:
             assert any(s.get("ha_zone") == "zone.home" and s["mode"] == "point" for s in sources)
 
 
+class TestVTECDedup:
+    """Tests for VTEC-based deduplication."""
+
+    async def test_different_uri_same_vtec_fires_updated(self, hass, mock_aioclient):
+        """Different URIs with same VTEC should fire UPDATED, not CLEARED+CREATED."""
+        for _ in range(2):
+            mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api.json"))
+
+        api_data = json.loads(load_fixture("api.json"))
+        api_data["features"][0]["id"] = (
+            "https://api.weather.gov/alerts/urn:oid:DIFFERENT.URI.SAME.VTEC"
+        )
+        api_data["features"][0]["properties"]["id"] = "urn:oid:DIFFERENT.URI.SAME.VTEC"
+        mock_aioclient.get(ZONE_URL, status=200, body=json.dumps(api_data))
+
+        events = []
+
+        def listener(event):
+            events.append(event)
+
+        hass.bus.async_listen(EVENT_ALERT_CREATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_UPDATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_CLEARED, listener)
+
+        entry = await _setup_entry(hass, mock_aioclient, CONFIG_DATA)
+        events.clear()
+
+        coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+
+        created = [e for e in events if e.event_type == EVENT_ALERT_CREATED]
+        updated = [e for e in events if e.event_type == EVENT_ALERT_UPDATED]
+        cleared = [e for e in events if e.event_type == EVENT_ALERT_CLEARED]
+
+        assert len(created) == 0
+        assert len(updated) == 1
+        assert len(cleared) == 0
+
+    async def test_non_vtec_fallback_id_matching(self, hass, mock_aioclient):
+        """Alerts without VTEC should still use ID-based matching."""
+        for _ in range(2):
+            mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api.json"))
+        mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api.json"))
+
+        events = []
+
+        def listener(event):
+            events.append(event)
+
+        hass.bus.async_listen(EVENT_ALERT_CREATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_UPDATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_CLEARED, listener)
+
+        entry = await _setup_entry(hass, mock_aioclient, CONFIG_DATA)
+        events.clear()
+
+        coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+
+        created = [e for e in events if e.event_type == EVENT_ALERT_CREATED]
+        updated = [e for e in events if e.event_type == EVENT_ALERT_UPDATED]
+        cleared = [e for e in events if e.event_type == EVENT_ALERT_CLEARED]
+
+        assert len(created) == 0
+        assert len(updated) == 0
+        assert len(cleared) == 0
+
+    async def test_can_action_fires_cleared(self, hass, mock_aioclient):
+        """CAN action with matching VTEC key should fire CLEARED, not CREATED."""
+        for _ in range(2):
+            mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api.json"))
+
+        api_data = json.loads(load_fixture("api.json"))
+        api_data["features"][0]["properties"]["parameters"]["VTEC"] = [
+            "/O.CAN.KPSR.EH.W.0006.240719T1700Z-240721T0300Z/"
+        ]
+        api_data["features"][0]["properties"]["messageType"] = "Cancel"
+        mock_aioclient.get(ZONE_URL, status=200, body=json.dumps(api_data))
+
+        events = []
+
+        def listener(event):
+            events.append(event)
+
+        hass.bus.async_listen(EVENT_ALERT_CREATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_UPDATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_CLEARED, listener)
+
+        entry = await _setup_entry(hass, mock_aioclient, CONFIG_DATA)
+        events.clear()
+
+        coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+
+        created = [e for e in events if e.event_type == EVENT_ALERT_CREATED]
+        updated = [e for e in events if e.event_type == EVENT_ALERT_UPDATED]
+        cleared = [e for e in events if e.event_type == EVENT_ALERT_CLEARED]
+
+        assert len(created) == 0
+        assert len(updated) == 0
+        assert len(cleared) == 1
+        assert cleared[0].data["ID"] == HEAT_ALERT_ID
+
+    async def test_exp_action_fires_cleared(self, hass, mock_aioclient):
+        """EXP action with matching VTEC key should fire CLEARED, not CREATED."""
+        for _ in range(2):
+            mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api.json"))
+
+        api_data = json.loads(load_fixture("api.json"))
+        api_data["features"][0]["properties"]["parameters"]["VTEC"] = [
+            "/O.EXP.KPSR.EH.W.0006.240719T1700Z-240721T0300Z/"
+        ]
+        api_data["features"][0]["properties"]["messageType"] = "Cancel"
+        mock_aioclient.get(ZONE_URL, status=200, body=json.dumps(api_data))
+
+        events = []
+
+        def listener(event):
+            events.append(event)
+
+        hass.bus.async_listen(EVENT_ALERT_CREATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_UPDATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_CLEARED, listener)
+
+        entry = await _setup_entry(hass, mock_aioclient, CONFIG_DATA)
+        events.clear()
+
+        coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+
+        created = [e for e in events if e.event_type == EVENT_ALERT_CREATED]
+        updated = [e for e in events if e.event_type == EVENT_ALERT_UPDATED]
+        cleared = [e for e in events if e.event_type == EVENT_ALERT_CLEARED]
+
+        assert len(created) == 0
+        assert len(updated) == 0
+        assert len(cleared) == 1
+        assert cleared[0].data["ID"] == HEAT_ALERT_ID
+
+    async def test_can_action_new_key_fires_cleared(self, hass, mock_aioclient):
+        """CAN action with no previous match should fire CLEARED with available data."""
+        mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api_one_alert.json"))
+        mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api_one_alert.json"))
+
+        api_data = json.loads(load_fixture("api.json"))
+        api_data["features"][1]["properties"]["parameters"]["VTEC"] = [
+            "/O.CAN.KPSR.EH.W.0006.240719T1700Z-240721T0300Z/"
+        ]
+        api_data["features"][1]["properties"]["messageType"] = "Cancel"
+        mock_aioclient.get(ZONE_URL, status=200, body=json.dumps(api_data))
+
+        events = []
+
+        def listener(event):
+            events.append(event)
+
+        hass.bus.async_listen(EVENT_ALERT_CREATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_UPDATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_CLEARED, listener)
+
+        entry = await _setup_entry(hass, mock_aioclient, CONFIG_DATA)
+        events.clear()
+
+        coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+
+        created = [e for e in events if e.event_type == EVENT_ALERT_CREATED]
+        cleared = [e for e in events if e.event_type == EVENT_ALERT_CLEARED]
+
+        assert len(created) == 0
+        assert len(cleared) == 1
+
+    async def test_vtec_key_removed_fires_cleared(self, hass, mock_aioclient):
+        """VTEC key disappearing from feed should fire CLEARED."""
+        for _ in range(2):
+            mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api.json"))
+
+        api_data = json.loads(load_fixture("api.json"))
+        api_data["features"] = [api_data["features"][1]]
+        mock_aioclient.get(ZONE_URL, status=200, body=json.dumps(api_data))
+
+        events = []
+
+        def listener(event):
+            events.append(event)
+
+        hass.bus.async_listen(EVENT_ALERT_CREATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_UPDATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_CLEARED, listener)
+
+        entry = await _setup_entry(hass, mock_aioclient, CONFIG_DATA)
+        events.clear()
+
+        coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+
+        created = [e for e in events if e.event_type == EVENT_ALERT_CREATED]
+        updated = [e for e in events if e.event_type == EVENT_ALERT_UPDATED]
+        cleared = [e for e in events if e.event_type == EVENT_ALERT_CLEARED]
+
+        assert len(created) == 0
+        assert len(updated) == 0
+        assert len(cleared) == 1
+        assert cleared[0].data["Event"] == "Excessive Heat Warning"
+
+    async def test_bad_vtec_falls_back_to_id(self, hass, mock_aioclient):
+        """Bad/missing VTEC string should fall back to ID-based matching."""
+        bad_vtec_fixture = json.loads(load_fixture("api.json"))
+        bad_vtec_fixture["features"][0]["properties"]["parameters"]["VTEC"] = [
+            "/INVALID.VTEC.STRING/"
+        ]
+        bad_vtec_body = json.dumps(bad_vtec_fixture)
+
+        for _ in range(2):
+            mock_aioclient.get(ZONE_URL, status=200, body=bad_vtec_body)
+        mock_aioclient.get(ZONE_URL, status=200, body=bad_vtec_body)
+
+        events = []
+
+        def listener(event):
+            events.append(event)
+
+        hass.bus.async_listen(EVENT_ALERT_CREATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_UPDATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_CLEARED, listener)
+
+        entry = await _setup_entry(hass, mock_aioclient, CONFIG_DATA)
+
+        created = [e for e in events if e.event_type == EVENT_ALERT_CREATED]
+        assert len(created) == 2
+
+        events.clear()
+
+        coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+
+        created = [e for e in events if e.event_type == EVENT_ALERT_CREATED]
+        updated = [e for e in events if e.event_type == EVENT_ALERT_UPDATED]
+        cleared = [e for e in events if e.event_type == EVENT_ALERT_CLEARED]
+
+        assert len(created) == 0
+        assert len(updated) == 0
+        assert len(cleared) == 0
+
+    async def test_same_vtec_same_id_different_content_updated(self, hass, mock_aioclient):
+        """Same VTEC key and same ID but different content should fire UPDATED."""
+        api_data = json.loads(load_fixture("api.json"))
+        api_data["features"][0]["properties"]["severity"] = "Extreme"
+
+        for _ in range(2):
+            mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api.json"))
+        mock_aioclient.get(ZONE_URL, status=200, body=json.dumps(api_data))
+
+        events = []
+
+        def listener(event):
+            events.append(event)
+
+        hass.bus.async_listen(EVENT_ALERT_CREATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_UPDATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_CLEARED, listener)
+
+        entry = await _setup_entry(hass, mock_aioclient, CONFIG_DATA)
+        events.clear()
+
+        coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+
+        created = [e for e in events if e.event_type == EVENT_ALERT_CREATED]
+        updated = [e for e in events if e.event_type == EVENT_ALERT_UPDATED]
+        cleared = [e for e in events if e.event_type == EVENT_ALERT_CLEARED]
+
+        assert len(created) == 0
+        assert len(updated) == 1
+        assert len(cleared) == 0
+        assert updated[0].data["Severity"] == "Extreme"
+
+    async def test_can_alert_no_double_clear(self, hass, mock_aioclient):
+        """CAN alert should not produce a second CLEARED when it drops from feed."""
+        for _ in range(2):
+            mock_aioclient.get(ZONE_URL, status=200, body=load_fixture("api.json"))
+
+        can_data = json.loads(load_fixture("api.json"))
+        can_data["features"][0]["properties"]["parameters"]["VTEC"] = [
+            "/O.CAN.KPSR.EH.W.0006.240719T1700Z-240721T0300Z/"
+        ]
+        can_data["features"][0]["properties"]["messageType"] = "Cancel"
+        mock_aioclient.get(ZONE_URL, status=200, body=json.dumps(can_data))
+
+        after_data = json.loads(load_fixture("api.json"))
+        after_data["features"] = [after_data["features"][1]]
+        mock_aioclient.get(ZONE_URL, status=200, body=json.dumps(after_data))
+
+        events = []
+
+        def listener(event):
+            events.append(event)
+
+        hass.bus.async_listen(EVENT_ALERT_CREATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_UPDATED, listener)
+        hass.bus.async_listen(EVENT_ALERT_CLEARED, listener)
+
+        entry = await _setup_entry(hass, mock_aioclient, CONFIG_DATA)
+
+        events.clear()
+
+        coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+
+        created = [e for e in events if e.event_type == EVENT_ALERT_CREATED]
+        updated = [e for e in events if e.event_type == EVENT_ALERT_UPDATED]
+        cleared = [e for e in events if e.event_type == EVENT_ALERT_CLEARED]
+
+        assert len(created) == 0
+        assert len(updated) == 0
+        assert len(cleared) == 1
+        assert cleared[0].data["ID"] == HEAT_ALERT_ID
+
+        events.clear()
+
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+
+        created = [e for e in events if e.event_type == EVENT_ALERT_CREATED]
+        updated = [e for e in events if e.event_type == EVENT_ALERT_UPDATED]
+        cleared = [e for e in events if e.event_type == EVENT_ALERT_CLEARED]
+
+        assert len(created) == 0
+        assert len(updated) == 0
+        assert len(cleared) == 0
+
+
 def load_fixture(filename):
     """Load a test fixture."""
     return pathlib.Path(__file__).parent.joinpath("fixtures", filename).read_text(encoding="utf8")
