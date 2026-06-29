@@ -181,7 +181,7 @@
               # --- Custom hooks (project) ---
               mypy = {
                 enable = true;
-                entry = "uv run mypy custom_components/wx_watcher tests";
+                entry = "uv run --frozen mypy --no-incremental custom_components/wx_watcher tests";
                 files = "\\.py$";
                 language = "system";
                 types = [ "python" ];
@@ -189,7 +189,7 @@
               };
               pytest = {
                 enable = true;
-                entry = "uv run pytest tests/ -v";
+                entry = "uv run --frozen pytest tests/ -v";
                 files = "\\.py$";
                 language = "system";
                 types = [ "python" ];
