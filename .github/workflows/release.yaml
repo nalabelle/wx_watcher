@@ -2,20 +2,46 @@ name: Release
 
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
 
 jobs:
+  tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      tagged: ${{ steps.tag.outputs.tagged }}
+      version: ${{ steps.tag.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Extract version and check tag
+        id: tag
+        run: |
+          VERSION=$(python3 -c "import json; print(json.load(open('custom_components/wx_watcher/manifest.json'))['version'])")
+          TAG="v${VERSION}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "tagged=false" >> "$GITHUB_OUTPUT"
+            echo "Tag ${TAG} already exists, skipping"
+          else
+            git tag "$TAG"
+            git push origin "$TAG"
+            echo "tagged=true" >> "$GITHUB_OUTPUT"
+            echo "Created and pushed tag ${TAG}"
+          fi
+
   release:
+    needs: tag
+    if: needs.tag.outputs.tagged == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v7
-
-      - name: Extract version from tag
-        id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+        with:
+          fetch-depth: 0
 
       - name: Generate release notes
         id: notes
@@ -33,8 +59,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ steps.version.outputs.VERSION }}
+          tag_name: v${{ needs.tag.outputs.version }}
+          name: ${{ needs.tag.outputs.version }}
           body: ${{ steps.notes.outputs.NOTES }}
           draft: false
           prerelease: false
