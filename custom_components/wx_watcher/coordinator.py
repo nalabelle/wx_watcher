@@ -40,6 +40,7 @@ from .const import (
     FETCH_TIMEOUT,
     LOCATION_MODE_POINT,
     LOCATION_MODE_ZONE,
+    LOCATION_MODE_ZONE_POINT,
     LOCATION_TYPE_STATIC,
     LOCATION_TYPE_TRACKED,
     MAX_TIMEOUT,
@@ -47,6 +48,7 @@ from .const import (
     TRACKER_STARTUP_GRACE_PERIOD,
 )
 from .events import _dedup_key, async_fire_alert_events, async_fire_fetch_result_event
+from .polygon import point_in_polygon
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -207,7 +209,9 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
             if loc[CONF_LOCATION_TYPE] == LOCATION_TYPE_STATIC and loc.get(CONF_LOCATION_HA_ZONE)
         }
 
-        location_zones, point_tasks = await self._build_fetch_tasks(static_zone_entity_ids)
+        location_zones, point_tasks, zone_point_gps_locs = await self._build_fetch_tasks(
+            static_zone_entity_ids
+        )
 
         all_zone_ids: set[str] = set()
         for loc_zones in location_zones.values():
@@ -230,18 +234,27 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
 
         self._nws_updated = nws_updated
 
-        merged = self._merge_zone_alerts(zone_alerts_raw, location_zones)
+        merged = self._merge_zone_alerts(zone_alerts_raw, location_zones, zone_point_gps_locs)
         self._merge_point_alerts(point_results, merged)
+
+        # Apply polygon filtering for zone_point locations
+        if zone_point_gps_locs:
+            self._apply_polygon_filtering(merged, zone_point_gps_locs)
 
         alerts = sorted(merged.values(), key=lambda x: x["ID"])
         return {"state": len(alerts), "alerts": alerts}
 
     async def _build_fetch_tasks(
         self, static_zone_entity_ids: set[str]
-    ) -> tuple[dict[str, set[str]], list[tuple[dict, tuple[float, float]]]]:
-        """Build zone-lookup and point-fetch tasks from configured locations."""
+    ) -> tuple[dict[str, set[str]], list[tuple[dict, tuple[float, float]]], dict[str, tuple[float, float]]]:
+        """Build zone-lookup and point-fetch tasks from configured locations.
+
+        Returns (location_zones, point_tasks, zone_point_gps_locs) where
+        zone_point_gps_locs maps entity_id → (lat, lon) for zone_point locations.
+        """
         location_zones: dict[str, set[str]] = {}
         point_tasks: list[tuple[dict, tuple[float, float]]] = []
+        zone_point_gps_locs: dict[str, tuple[float, float]] = {}
 
         for loc in self._locations:
             loc_type = loc[CONF_LOCATION_TYPE]
@@ -287,6 +300,41 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
                 loc_zones = {z.strip() for z in zone_str.split(",") if z.strip()}
                 location_zones[_entity_id(loc)] = loc_zones
 
+            elif loc_mode == LOCATION_MODE_ZONE_POINT:
+                # zone_point: resolve zones (same as zone mode), but also track GPS
+                # for polygon filtering after alerts come back.
+                zone_str = loc.get(CONF_LOCATION_ZONE, "")
+                if loc_type == LOCATION_TYPE_TRACKED or not zone_str:
+                    coords = _safe_parse_gps(loc)
+                    if coords is None:
+                        continue
+                    lat, lon = coords
+                    zones = await resolve_zones(self._session, self._user_agent, lat, lon)
+                    if zones is None:
+                        _LOGGER.warning(
+                            "Could not resolve zones for location %s, skipping",
+                            self._display_name(_entity_id(loc)),
+                        )
+                        continue
+                    zone_str = ",".join(zones)
+                    loc[CONF_LOCATION_ZONE] = zone_str
+                    loc[CONF_LOCATION_GPS] = f"{lat},{lon}"
+
+                loc_zones = {z.strip() for z in zone_str.split(",") if z.strip()}
+                location_zones[_entity_id(loc)] = loc_zones
+                # Store GPS for polygon filtering — use zone_str GPS if already set
+                gps = loc.get(CONF_LOCATION_GPS, "")
+                if gps:
+                    try:
+                        lat_s, lon_s = gps.replace(" ", "").split(",")
+                        zone_point_gps_locs[_entity_id(loc)] = (float(lat_s), float(lon_s))
+                    except (ValueError, IndexError):
+                        _LOGGER.warning(
+                            "Invalid GPS for zone_point location %s: %s",
+                            _entity_id(loc),
+                            gps,
+                        )
+
             elif loc_mode == LOCATION_MODE_POINT:
                 coords = _safe_parse_gps(loc)
                 if coords is None:
@@ -294,7 +342,7 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
                 lat, lon = coords
                 point_tasks.append((loc, (lat, lon)))
 
-        return location_zones, point_tasks
+        return location_zones, point_tasks, zone_point_gps_locs
 
     async def _fetch_point_alerts(
         self, point_tasks: list[tuple[dict, tuple[float, float]]]
@@ -336,6 +384,7 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
         self,
         zone_alerts_raw: list[dict[str, Any]],
         location_zones: dict[str, set[str]],
+        zone_point_gps_locs: dict[str, tuple[float, float]],
     ) -> dict[str, dict[str, Any]]:
         """Merge raw zone alerts and assign source locations."""
         merged: dict[str, dict[str, Any]] = {}
@@ -356,6 +405,16 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
             else:
                 parsed["sources"] = sources
                 merged[alert_id] = parsed
+
+            # For zone_point locations, evaluate polygon coverage and store the result
+            for entity_id in zone_point_gps_locs:
+                if entity_id in location_zones and ugc & location_zones[entity_id]:
+                    lat, lon = zone_point_gps_locs[entity_id]
+                    merged[alert_id]["polygon_covers_location"] = point_in_polygon(
+                        lat, lon, parsed.get("_geometry")
+                    )
+                    break
+
         return merged
 
     def _merge_point_alerts(
@@ -378,6 +437,38 @@ class AlertsDataUpdateCoordinator(DataUpdateCoordinator):
                 else:
                     parsed["sources"] = [source]
                     merged[alert_id] = parsed
+
+    def _apply_polygon_filtering(
+        self,
+        merged: dict[str, dict[str, Any]],
+        zone_point_gps_locs: dict[str, tuple[float, float]],
+    ) -> None:
+        """Filter out zone alerts whose polygons do not cover zone_point locations.
+
+        For each zone alert that has polygon_covers_location == False,
+        remove the zone_point source from the alert's sources list.
+        If no sources remain, remove the alert entirely from merged.
+        """
+        entity_ids = set(zone_point_gps_locs.keys())
+        to_remove: list[str] = []
+
+        for alert_id, parsed in merged.items():
+            covers = parsed.get("polygon_covers_location")
+            if covers is None:
+                # No polygon data available — keep the alert
+                continue
+            if not covers:
+                # Polygon does NOT cover the zone_point location — filter sources
+                original_sources = list(parsed["sources"])
+                parsed["sources"] = [
+                    s for s in original_sources
+                    if s.get("mode") != LOCATION_MODE_ZONE_POINT
+                ]
+                if not parsed["sources"]:
+                    to_remove.append(alert_id)
+
+        for alert_id in to_remove:
+            del merged[alert_id]
 
     async def _get_tracker_gps(self, tracker_entity_id: str) -> str | None:
         """Return ``lat,lon`` string for a tracker entity, or None."""

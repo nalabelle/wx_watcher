@@ -31,6 +31,7 @@ LOCATION_TYPE_TRACKED = "tracked"
 
 LOCATION_MODE_ZONE = "zone"
 LOCATION_MODE_POINT = "point"
+LOCATION_MODE_ZONE_POINT = "zone_point"
 
 DEFAULT_ICON = "mdi:alert"
 DEFAULT_NAME = "WX Watcher"
