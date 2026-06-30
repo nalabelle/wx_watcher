@@ -74,6 +74,8 @@ def _point_in_polygon(lat: float, lon: float, coordinates: Any) -> bool:
         return False
 
     outer_ring = coordinates[0]
+    if not isinstance(outer_ring, list) or len(outer_ring) == 0:
+        return False
     if not _point_in_ring(lat, lon, outer_ring):
         return False
 
