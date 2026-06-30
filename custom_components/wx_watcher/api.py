@@ -185,6 +185,7 @@ def parse_alert(raw_alert: dict[str, Any]) -> dict[str, Any] | None:
         "Significance": "",
         "References": props.get("references", []),
         "_ugc": ugc,
+        "_geometry": raw_alert.get("geometry"),
     }
 
     vtec_list = parsed["VTEC"]

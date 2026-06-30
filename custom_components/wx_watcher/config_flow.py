@@ -38,6 +38,7 @@ from .const import (
     DOMAIN,
     LOCATION_MODE_POINT,
     LOCATION_MODE_ZONE,
+    LOCATION_MODE_ZONE_POINT,
     LOCATION_TYPE_STATIC,
     LOCATION_TYPE_TRACKED,
     USER_AGENT,
@@ -48,6 +49,7 @@ _LOGGER = logging.getLogger(__name__)
 MODE_OPTIONS = [
     SelectOptionDict(value=LOCATION_MODE_ZONE, label="Zone mode (broader coverage)"),
     SelectOptionDict(value=LOCATION_MODE_POINT, label="Point mode (precise location)"),
+    SelectOptionDict(value=LOCATION_MODE_ZONE_POINT, label="Zone + point mode (zone coverage, polygon filtering)"),
 ]
 
 
@@ -167,7 +169,7 @@ async def _validate_static(
         else:
             gps = f"{state.attributes['latitude']},{state.attributes['longitude']}"
 
-    if not errors and mode == LOCATION_MODE_ZONE and not zone_str:
+    if not errors and mode in (LOCATION_MODE_ZONE, LOCATION_MODE_ZONE_POINT) and not zone_str:
         instance_id = await async_get_instance_id(hass)
         user_agent = USER_AGENT.format(instance_id)
         session = async_get_clientsession(hass)
