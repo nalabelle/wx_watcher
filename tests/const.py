@@ -9,6 +9,7 @@ from custom_components.wx_watcher.const import (
     CONF_LOCATION_ZONE,
     LOCATION_MODE_POINT,
     LOCATION_MODE_ZONE,
+    LOCATION_MODE_ZONE_POINT,
     LOCATION_TYPE_STATIC,
     LOCATION_TYPE_TRACKED,
 )
@@ -98,6 +99,21 @@ CONFIG_DATA_TRACKER_ONLY = {
             CONF_LOCATION_GPS: "",
             CONF_LOCATION_ZONE: "",
             CONF_LOCATION_TRACKER: "device_tracker.phone",
+        },
+    ],
+}
+
+CONFIG_DATA_ZONE_POINT = {
+    "name": "WX Watcher",
+    "interval": 60,
+    "timeout": 60,
+    "locations": [
+        {
+            CONF_LOCATION_TYPE: LOCATION_TYPE_STATIC,
+            CONF_LOCATION_MODE: LOCATION_MODE_ZONE_POINT,
+            CONF_LOCATION_GPS: "33.25,-112.30",
+            CONF_LOCATION_ZONE: "AZZ540,AZC013",
+            CONF_LOCATION_HA_ZONE: "zone.home",
         },
     ],
 }

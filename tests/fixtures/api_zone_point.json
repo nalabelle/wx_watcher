@@ -1,0 +1,284 @@
+{
+  "@context": [
+    "https://geojson.org/geojson-ld/geojson-context.jsonld",
+    {
+      "@version": "1.1",
+      "wx": "https://api.weather.gov/ontology#",
+      "@vocab": "https://api.weather.gov/ontology#"
+    }
+  ],
+  "type": "FeatureCollection",
+  "updated": "2024-07-19T12:00:00+00:00",
+  "features": [
+    {
+      "id": "https://alerts.weather.gov/cap/WWAF/1",
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-82.90, 42.87],
+          [-82.55, 42.87],
+          [-82.55, 43.10],
+          [-82.90, 43.10],
+          [-82.90, 42.87]
+        ]]
+      },
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/WWAF/1",
+        "@type": "wx:Alert",
+        "id": "urn:oid:WWAF.1",
+        "event": "Severe Thunderstorm Warning",
+        "severity": "Extreme",
+        "areaDesc": "Northern Pinewood County",
+        "geocode": {
+          "UGC": ["MIZ999"]
+        },
+        "messageType": "Alert",
+        "status": "Actual",
+        "certainty": "Likely",
+        "urgency": "Immediate",
+        "response": "Shelter",
+        "senderName": "NWS",
+        "sent": "2024-07-19T10:00:00+00:00",
+        "onset": "2024-07-19T10:00:00+00:00",
+        "expires": "2024-07-19T16:00:00+00:00",
+        "ends": "2024-07-19T16:00:00+00:00",
+        "effective": "2024-07-19T10:00:00+00:00",
+        "description": "Severe thunderstorm warning for northern areas.",
+        "instruction": "Take shelter now.",
+        "parameters": {
+          "VTEC": ["/O.NEW.KDTX.SV.W.0001.240719T1000Z-240719T1600Z/"]
+        },
+        "headline": "Severe Thunderstorm Warning issued for Northern Pinewood County"
+      }
+    },
+    {
+      "id": "https://alerts.weather.gov/cap/WWAF/2",
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-83.00, 42.50],
+          [-82.40, 42.50],
+          [-82.40, 43.00],
+          [-83.00, 43.00],
+          [-83.00, 42.50]
+        ]]
+      },
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/WWAF/2",
+        "@type": "wx:Alert",
+        "id": "urn:oid:WWAF.2",
+        "event": "Severe Thunderstorm Warning",
+        "severity": "Extreme",
+        "areaDesc": "Pinewood County",
+        "geocode": {
+          "UGC": ["MIZ999"]
+        },
+        "messageType": "Alert",
+        "status": "Actual",
+        "certainty": "Likely",
+        "urgency": "Immediate",
+        "response": "Shelter",
+        "senderName": "NWS",
+        "sent": "2024-07-19T11:00:00+00:00",
+        "onset": "2024-07-19T11:00:00+00:00",
+        "expires": "2024-07-19T17:00:00+00:00",
+        "ends": "2024-07-19T17:00:00+00:00",
+        "effective": "2024-07-19T11:00:00+00:00",
+        "description": "Severe thunderstorm warning covering the full county.",
+        "instruction": "Take shelter now.",
+        "parameters": {
+          "VTEC": ["/O.NEW.KDTX.SV.W.0002.240719T1100Z-240719T1700Z/"]
+        },
+        "headline": "Severe Thunderstorm Warning issued for Pinewood County"
+      }
+    },
+    {
+      "id": "https://alerts.weather.gov/cap/WWAF/3",
+      "type": "Feature",
+      "geometry": null,
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/WWAF/3",
+        "@type": "wx:Alert",
+        "id": "urn:oid:WWAF.3",
+        "event": "Extreme Heat Watch",
+        "severity": "Moderate",
+        "areaDesc": "Pinewood County",
+        "geocode": {
+          "UGC": ["MIZ999"]
+        },
+        "messageType": "Alert",
+        "status": "Actual",
+        "certainty": "Possible",
+        "urgency": "Future",
+        "response": "Monitor",
+        "senderName": "NWS",
+        "sent": "2024-07-19T09:00:00+00:00",
+        "onset": "2024-07-19T09:00:00+00:00",
+        "expires": "2024-07-20T09:00:00+00:00",
+        "ends": "2024-07-20T09:00:00+00:00",
+        "effective": "2024-07-19T09:00:00+00:00",
+        "description": "Extreme heat watch for the county.",
+        "instruction": "Stay hydrated.",
+        "parameters": {
+          "VTEC": ["/O.NEW.KDTX.HT.Y.0001.240719T0900Z-240720T0900Z/"]
+        },
+        "headline": "Extreme Heat Watch issued for Pinewood County"
+      }
+    },
+    {
+      "id": "https://alerts.weather.gov/cap/WWAF/4",
+      "type": "Feature",
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [[[-82.90, 42.87], [-82.55, 42.87], [-82.55, 43.10], [-82.90, 43.10], [-82.90, 42.87]]],
+          [[[-83.00, 42.50], [-82.40, 42.50], [-82.40, 43.00], [-83.00, 43.00], [-83.00, 42.50]]]
+        ]
+      },
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/WWAF/4",
+        "@type": "wx:Alert",
+        "id": "urn:oid:WWAF.4",
+        "event": "Severe Thunderstorm Warning",
+        "severity": "Extreme",
+        "areaDesc": "Pinewood County",
+        "geocode": {
+          "UGC": ["MIZ999"]
+        },
+        "messageType": "Alert",
+        "status": "Actual",
+        "certainty": "Likely",
+        "urgency": "Immediate",
+        "response": "Shelter",
+        "senderName": "NWS",
+        "sent": "2024-07-19T12:00:00+00:00",
+        "onset": "2024-07-19T12:00:00+00:00",
+        "expires": "2024-07-19T18:00:00+00:00",
+        "ends": "2024-07-19T18:00:00+00:00",
+        "effective": "2024-07-19T12:00:00+00:00",
+        "description": "Severe thunderstorm warning with multiple polygons.",
+        "instruction": "Take shelter now.",
+        "parameters": {
+          "VTEC": ["/O.NEW.KDTX.SV.W.0003.240719T1200Z-240719T1800Z/"]
+        },
+        "headline": "Severe Thunderstorm Warning issued for Pinewood County (multi-polygon)"
+      }
+    },
+    {
+      "id": "https://alerts.weather.gov/cap/WWAF/5",
+      "type": "Feature",
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [[[-82.90, 42.87], [-82.55, 42.87], [-82.55, 43.10], [-82.90, 43.10], [-82.90, 42.87]]],
+          [[[-83.50, 43.50], [-83.20, 43.50], [-83.20, 44.00], [-83.50, 44.00], [-83.50, 43.50]]]
+        ]
+      },
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/WWAF/5",
+        "@type": "wx:Alert",
+        "id": "urn:oid:WWAF.5",
+        "event": "Severe Thunderstorm Warning",
+        "severity": "Extreme",
+        "areaDesc": "Northern Pinewood County",
+        "geocode": {
+          "UGC": ["MIZ999"]
+        },
+        "messageType": "Alert",
+        "status": "Actual",
+        "certainty": "Likely",
+        "urgency": "Immediate",
+        "response": "Shelter",
+        "senderName": "NWS",
+        "sent": "2024-07-19T13:00:00+00:00",
+        "onset": "2024-07-19T13:00:00+00:00",
+        "expires": "2024-07-19T19:00:00+00:00",
+        "ends": "2024-07-19T19:00:00+00:00",
+        "effective": "2024-07-19T13:00:00+00:00",
+        "description": "Severe thunderstorm warning, user outside both polygons.",
+        "instruction": "Take shelter now.",
+        "parameters": {
+          "VTEC": ["/O.NEW.KDTX.SV.W.0004.240719T1300Z-240719T1900Z/"]
+        },
+        "headline": "Severe Thunderstorm Warning issued for Northern Pinewood County (multi-polygon, no cover)"
+      }
+    },
+    {
+      "id": "https://alerts.weather.gov/cap/WWAF/6",
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-83.00, 42.50],
+          [-82.40, 40.1234],
+          [-82.40, 43.00],
+          [-83.00, 43.00],
+          [-83.00, 42.50]
+        ]]
+      },
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/WWAF/6",
+        "@type": "wx:Alert",
+        "id": "urn:oid:WWAF.6",
+        "event": "Severe Thunderstorm Warning",
+        "severity": "Extreme",
+        "areaDesc": "Pinewood County",
+        "geocode": {
+          "UGC": ["MIZ999"]
+        },
+        "messageType": "Alert",
+        "status": "Actual",
+        "certainty": "Likely",
+        "urgency": "Immediate",
+        "response": "Shelter",
+        "senderName": "NWS",
+        "sent": "2024-07-19T14:00:00+00:00",
+        "onset": "2024-07-19T14:00:00+00:00",
+        "expires": "2024-07-19T20:00:00+00:00",
+        "ends": "2024-07-19T20:00:00+00:00",
+        "effective": "2024-07-19T14:00:00+00:00",
+        "description": "Severe thunderstorm warning, user on polygon edge.",
+        "instruction": "Take shelter now.",
+        "parameters": {
+          "VTEC": ["/O.NEW.KDTX.SV.W.0005.240719T1400Z-240719T2000Z/"]
+        },
+        "headline": "Severe Thunderstorm Warning issued for Pinewood County (edge case)"
+      }
+    },
+    {
+      "id": "https://alerts.weather.gov/cap/WWAF/7",
+      "type": "Feature",
+      "geometry": {},
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/WWAF/7",
+        "@type": "wx:Alert",
+        "id": "urn:oid:WWAF.7",
+        "event": "Flood Advisory",
+        "severity": "Minor",
+        "areaDesc": "Pinewood County",
+        "geocode": {
+          "UGC": ["MIZ999"]
+        },
+        "messageType": "Alert",
+        "status": "Actual",
+        "certainty": "Likely",
+        "urgency": "Expected",
+        "response": "Avoid",
+        "senderName": "NWS",
+        "sent": "2024-07-19T08:00:00+00:00",
+        "onset": "2024-07-19T08:00:00+00:00",
+        "expires": "2024-07-19T14:00:00+00:00",
+        "ends": "2024-07-19T14:00:00+00:00",
+        "effective": "2024-07-19T08:00:00+00:00",
+        "description": "Flood advisory with empty geometry.",
+        "instruction": "Avoid flood areas.",
+        "parameters": {
+          "VTEC": ["/O.NEW.KDTX.FA.Y.0001.240719T0800Z-240719T1400Z/"]
+        },
+        "headline": "Flood Advisory issued for Pinewood County"
+      }
+    }
+  ]
+}

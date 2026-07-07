@@ -108,3 +108,37 @@ async def test_form_static_point_mode(hass):
         assert result["data"]["locations"][0]["mode"] == "point"
         assert result["data"]["locations"][0]["zone"] == ""
         await hass.async_block_till_done()
+
+
+async def test_form_static_zone_point_mode(hass):
+    """Test zone_point mode resolves zones and stores mode correctly."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    with patch("custom_components.wx_watcher.async_setup_entry", return_value=True):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}
+        )
+        await hass.async_block_till_done()
+        assert result["step_id"] == "locations"
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"action": "add_static"}
+        )
+
+        with patch(
+            "custom_components.wx_watcher.config_flow.resolve_zones",
+            return_value=["AZZ540", "AZC013"],
+        ):
+            result = await hass.config_entries.flow.async_configure(
+                result["flow_id"],
+                {"ha_zone": "zone.home", "mode": "zone_point", "zone": ""},
+            )
+            assert result["type"] == FlowResultType.FORM
+            assert result["step_id"] == "locations"
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"action": "done"}
+        )
+        assert result["type"] == FlowResultType.CREATE_ENTRY
+        assert result["data"]["locations"][0]["mode"] == "zone_point"
+        assert result["data"]["locations"][0]["zone"] == "AZC013,AZZ540"
+        await hass.async_block_till_done()
