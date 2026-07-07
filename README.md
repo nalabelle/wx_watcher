@@ -46,12 +46,43 @@ Go to **Settings → Devices & Services → Add Integration** and search for "WX
 | **Static**  | Always-monitored HA zone (home, work, school) |
 | **Tracked** | Follows a device_tracker entity (phone, car)  |
 
-### Query Modes
+### Location Modes
 
-| Mode      | Behavior                                                                                                                                                    |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Zone**  | Queries all alerts listed for the resolved NWS zones. Broader coverage — includes alerts that may not cover your exact point.                               |
-| **Point** | Queries only alerts whose polygon covers your exact GPS coordinates. More precise — filters out zone-wide alerts that don't actually include your location. |
+| Mode           | Behavior                                                                                                                                                                       |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Zone**        | Queries all alerts listed for the resolved NWS zones. Broader coverage — includes alerts that may not cover your exact point. No polygon filtering.                            |
+| **Point**      | Queries only alerts whose polygon covers your exact GPS coordinates. More precise — filters out zone-wide alerts that don't actually include your location.                     |
+| **Zone + Point** | Queries all alerts for resolved NWS zones (like Zone mode), then applies point-in-polygon filtering. Each alert gets a `polygon_covers_location` attribute: `true` if the alert's polygon covers your location, `false` if it doesn't, or `null` if the alert has no polygon geometry (watches, broad advisories). Best of both worlds — full coverage with precision filtering. |
+
+#### Zone + Point (Hybrid) Mode Details
+
+Zone + Point mode is designed for users in large counties or zones who want the broad coverage of zone alerts without being notified about storms that are geographically distant.
+
+- **Zone fetch**: All alerts for your NWS zone codes are fetched (same as Zone mode)
+- **Polygon filtering**: For alerts that include polygon geometry, a point-in-polygon test determines whether your location is inside the storm area
+- **No-polygon passthrough**: Alerts without polygon data (watches, advisories, broad regional alerts) are passed through with `polygon_covers_location: null` — you decide how to handle them in automations
+
+**Automation example — only notify for nearby storms:**
+
+```yaml
+automation:
+  - alias: WX Watcher → Nearby Storm Alert
+    trigger:
+      - trigger: event
+        event_type: wx_watcher_alert_created
+    condition:
+      - condition: template
+        value_template: >-
+          {{ trigger.event.data.polygon_covers_location is true
+             or trigger.event.data.polygon_covers_location is none }}
+    action:
+      - action: notify.mobile_phone
+        data:
+          title: "{{ trigger.event.data.Event }}"
+          message: "{{ trigger.event.data.Headline }}"
+```
+
+This automation fires for alerts that cover your location (`true`) or lack polygon data (`null`), and skips alerts whose polygon explicitly doesn't cover you (`false`).
 
 ## Event Schema
 
@@ -90,7 +121,8 @@ Each alert event (`created`, `updated`, `cleared`) carries these fields:
 | `References`                                    | Referenced previous alerts                                                                                                                                      |
 | `SenderName`                                    | Issuing NWS office                                                                                                                                              |
 | `config_entry_id`                               | Config entry that fired the event                                                                                                                               |
-| `sources`                                       | List of source dicts. Static: `{"ha_zone": "zone.home", "mode": "zone"}`. Tracked: `{"tracker": "device_tracker.phone", "mode": "point"}`.                      |
+| `polygon_covers_location`                        | `true` if alert polygon covers your location, `false` if it doesn't, `null` if alert has no polygon data. Only present in Zone + Point mode. |
+| `sources`                                       | List of source dicts. Static: `{"ha_zone": "zone.home", "mode": "zone"}`. Tracked: `{"tracker": "device_tracker.phone", "mode": "point"}`. Zone+Point: `{"ha_zone": "zone.home", "mode": "zone_point"}`. |
 
 ### Fetch Result Event Data
 
@@ -160,7 +192,7 @@ To update, re-import the blueprint from the same URL.
 
 | Entity                     | State                   | Attributes                                                      |
 | -------------------------- | ----------------------- | --------------------------------------------------------------- |
-| `sensor.wx_watcher_alerts` | Number of active alerts | `Alerts` (full list with sources), `nws_updated`, `attribution` |
+| `sensor.wx_watcher_alerts` | Number of active alerts | `Alerts` (full list with sources and `polygon_covers_location` in Zone + Point mode), `nws_updated`, `attribution` |
 
 ## Breaking Changes from v8.1
 
