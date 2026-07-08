@@ -49,7 +49,7 @@ TIMEOUT_STEP = 5
 EVENT_ATTR_CONFIG_ENTRY_ID = "config_entry_id"
 EVENT_ATTR_SOURCES = "sources"
 
-VERSION = "8.4.0"
+VERSION = "8.4.1"
 ISSUE_URL = "https://github.com/nalabelle/wx_watcher"
 DOMAIN = "wx_watcher"
 PLATFORM = "sensor"

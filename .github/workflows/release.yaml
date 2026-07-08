@@ -6,7 +6,19 @@ on:
       - main
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Hassfest validation
+        uses: home-assistant/actions/hassfest@master
+      - name: HACS validation
+        uses: hacs/action@main
+        with:
+          category: integration
+
   tag:
+    needs: validate
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -44,23 +56,19 @@ jobs:
           fetch-depth: 0
 
       - name: Generate release notes
-        id: notes
-        run: |
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          if [ -n "$PREVIOUS_TAG" ]; then
-            NOTES=$(git log "${PREVIOUS_TAG}..HEAD" --pretty=format:"- %s")
-          else
-            NOTES=$(git log --pretty=format:"- %s" -20)
-          fi
-          echo "NOTES<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$NOTES" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+        id: cliff
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --tag v${{ needs.tag.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ needs.tag.outputs.version }}
           name: ${{ needs.tag.outputs.version }}
-          body: ${{ steps.notes.outputs.NOTES }}
+          body: ${{ steps.cliff.outputs.content }}
           draft: false
           prerelease: false
