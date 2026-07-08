@@ -5,8 +5,10 @@
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/nalabelle/wx_watcher/",
+  "integration_type": "service",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/nalabelle/wx_watcher/issues",
+  "loggers": ["custom_components.wx_watcher"],
   "requirements": [],
   "version": "8.4.1"
 }
